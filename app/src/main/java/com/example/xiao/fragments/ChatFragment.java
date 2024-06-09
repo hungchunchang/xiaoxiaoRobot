@@ -21,6 +21,7 @@ import com.example.xiao.listeners.CustomRobotEventListener;
 import com.example.xiao.message.AudioMessage;
 import com.example.xiao.message.ImageMessage;
 import com.example.xiao.message.TextMessage;
+import com.example.xiao.util.CameraHandler;
 import com.example.xiao.util.SocketHandler;
 import com.example.xiao.viewmodel.MessagesViewModel;
 import com.example.xiao.viewmodel.RobotViewModel;
@@ -32,6 +33,7 @@ public class ChatFragment extends Fragment {
     private NuwaRobotAPI mRobotAPI;
     private IClientId mClientId;
     private SocketHandler socketHandler;
+    private CameraHandler cameraHandler;
     private MessagesViewModel messagesViewModel;
     private RobotViewModel robotViewModel;
     private TextView mResult, mInput;
@@ -48,7 +50,7 @@ public class ChatFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         mResult = view.findViewById(R.id.result_text);
-        mResult.setMovementMethod(new ScrollingMovementMethod()); // 啟用滾動
+        mResult.setMovementMethod(new ScrollingMovementMethod());
         mInput = view.findViewById(R.id.input_text);
         mInput.setMovementMethod(new ScrollingMovementMethod());
 
@@ -59,6 +61,7 @@ public class ChatFragment extends Fragment {
         mClientId = new IClientId(requireContext().getPackageName());
         mRobotAPI = new NuwaRobotAPI(requireContext(), mClientId);
         socketHandler = ((MainActivity) requireContext()).getSocketHandler();
+        cameraHandler = new CameraHandler(this, robotViewModel);
         messagesViewModel = new ViewModelProvider(requireActivity()).get(MessagesViewModel.class);
 
         robotViewModel = new ViewModelProvider(this, new ViewModelProvider.Factory() {
@@ -67,7 +70,7 @@ public class ChatFragment extends Fragment {
             public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
                 if (modelClass.isAssignableFrom(RobotViewModel.class)) {
                     CustomRobotEventListener customRobotEventListener = new CustomRobotEventListener(mRobotAPI, messagesViewModel, null, socketHandler);
-                    return (T) new RobotViewModel(mRobotAPI, customRobotEventListener);
+                    return (T) new RobotViewModel(mRobotAPI, customRobotEventListener, cameraHandler);
                 }
                 throw new IllegalArgumentException("Unknown ViewModel class");
             }
@@ -79,11 +82,8 @@ public class ChatFragment extends Fragment {
         mRobotAPI.registerRobotEventListener(robotViewModel.getCustomRobotEventListener());
 
         robotViewModel.getCurrentAction().observe(getViewLifecycleOwner(), action -> {
-            // 更新 UI 或其他操作
             Log.d(TAG, "Current action: " + action);
         });
-
-
 
         mStartBtn.setOnClickListener(this::BtnStart);
         mStopBtn.setOnClickListener(this::BtnStop);
@@ -94,7 +94,6 @@ public class ChatFragment extends Fragment {
             mStopBtn.setEnabled(false);
         });
 
-        // 接收 Server 的消息然後唸出來
         messagesViewModel.responseReceived().observe(getViewLifecycleOwner(), response -> {
             if (response != null) {
                 if (response instanceof TextMessage) {
@@ -128,10 +127,35 @@ public class ChatFragment extends Fragment {
             robotViewModel.stopRepeatingAction();
         }).start();
     }
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        mRobotAPI.release();
+        // 取消所有的LiveData觀察者
+        messagesViewModel.responseReceived().removeObservers(getViewLifecycleOwner());
+        messagesViewModel.getMessages().removeObservers(getViewLifecycleOwner());
+        // 釋放視圖資源
+        mResult = null;
+        mInput = null;
+        mStartBtn = null;
+        mStopBtn = null;
+        mBackBtn = null;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        // 釋放NuwaRobotAPI資源
+        if (mRobotAPI != null) {
+            mRobotAPI.release();
+            mRobotAPI = null;
+        }
+        // 釋放SocketHandler資源
+        if (socketHandler != null) {
+            socketHandler.disconnect();
+            socketHandler = null;
+        }
+
     }
 
     public void BtnStart(View view) {
@@ -166,10 +190,9 @@ public class ChatFragment extends Fragment {
     }
 
     private long getTTSDuration(String text) {
-        // 這裡簡單估算 TTS 的時間，可以根據實際情況調整
-        int wordsPerMinute = 210; // 假設每分鐘講150個字
+        int wordsPerMinute = 210;
         int words = text.split("\\s+").length;
-        return (words * 60000) / wordsPerMinute; // 返回毫秒數
+        return (words * 60000) / wordsPerMinute;
     }
 
 }

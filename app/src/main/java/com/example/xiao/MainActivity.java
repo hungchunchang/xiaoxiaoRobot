@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
         // 初始化 MessagesViewModel
         MessagesViewModel messagesViewModel = new ViewModelProvider(this).get(MessagesViewModel.class);
         // 初始化 SocketHandler
-        socketHandler = new SocketHandler(this, "192.168.0.200", 1234, messagesViewModel);
+        socketHandler = new SocketHandler(this, "172.20.10.9", 12345, messagesViewModel);
         fragment_container = findViewById(R.id.fragment_container);
         // 初始化連線按鈕
         connectButton = findViewById(R.id.connect_button);
@@ -73,5 +73,10 @@ public class MainActivity extends AppCompatActivity {
                 .replace(R.id.fragment_container, new ChatFragment())
                 .addToBackStack(null)
                 .commit();
+    }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        socketHandler.disconnect();
     }
 }

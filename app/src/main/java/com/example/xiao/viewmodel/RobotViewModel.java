@@ -1,5 +1,6 @@
 package com.example.xiao.viewmodel;
 
+import android.graphics.Bitmap;
 import android.util.Log;
 
 import androidx.lifecycle.LiveData;
@@ -7,8 +8,12 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.xiao.listeners.CustomRobotEventListener;
+import com.example.xiao.util.CameraHandler;
+import com.example.xiao.util.SocketHandler;
 import com.nuwarobotics.service.agent.NuwaRobotAPI;
 
+import java.io.ByteArrayOutputStream;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
@@ -22,12 +27,16 @@ public class RobotViewModel extends ViewModel {
     private final Map<String, String> expressionMap;
     private boolean mMotionComplete = true;
     private final CustomRobotEventListener customRobotEventListener;
+    private final CameraHandler cameraHandler;
+    private final SocketHandler socketHandler;
     private Timer timer;
     private TimerTask repeatTask;
 
-    public RobotViewModel(NuwaRobotAPI robotAPI, CustomRobotEventListener customRobotEventListener) {
+    public RobotViewModel(NuwaRobotAPI robotAPI, CustomRobotEventListener customRobotEventListener, CameraHandler cameraHandler) {
         this.mRobotAPI = robotAPI;
         this.customRobotEventListener = customRobotEventListener;
+        this.socketHandler = customRobotEventListener.getSocketHandler();
+        this.cameraHandler = cameraHandler;
         this.motionMap = new HashMap<>();
         this.expressionMap = new HashMap<>();
         initializeMotionAndExpressionMaps();
@@ -41,10 +50,10 @@ public class RobotViewModel extends ViewModel {
         motionMap.put("Thinking", "666_DA_Intospace");
         motionMap.put("Speaking", "666_RE_Ask");
 
-        expressionMap.put("Idle", "TTS_Happy");
-        expressionMap.put("Listening", "TTS_Sad");
-        expressionMap.put("Thinking", "TTS_Surprise");
-        expressionMap.put("Speaking", "TTS_Angry");
+        expressionMap.put("Idle", "TTS_Contempt");
+        expressionMap.put("Listening", "TTS_Surprise");
+        expressionMap.put("Thinking", "TTS_JoyB");
+        expressionMap.put("Speaking", "TTS_PeaceA");
     }
 
     public LiveData<String> getCurrentAction() {
@@ -110,8 +119,21 @@ public class RobotViewModel extends ViewModel {
         }
     }
 
-
     public CustomRobotEventListener getCustomRobotEventListener() {
         return customRobotEventListener;
+    }
+
+    public void takePicture() {
+        cameraHandler.takePicture();
+    }
+    public void handleCapturedImage(Bitmap imageBitmap) {
+        // 將 Bitmap 轉換為 Base64 字符串
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
+        byte[] byteArray = byteArrayOutputStream.toByteArray();
+        String encodedImage = Base64.getEncoder().encodeToString(byteArray);
+
+        // 發送圖片數據到伺服器
+        socketHandler.sendData(encodedImage);
     }
 }

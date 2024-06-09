@@ -97,11 +97,17 @@ public class CustomVoiceEventListener implements VoiceEventListener {
             return;
         }
 
-        TextMessage message = new TextMessage(getCurrentTime() + " onMixUnderstandComplete: " + isError + ", result: " + result_string);
-        robotViewModel.setAction("Thinking");
-        messagesViewModel.setMessages(message);
-        messagesViewModel.setResultToSend(result_string);
-        new Thread(mRobotAPI::stopListen).start();
+        // 檢查是否包含拍照指令
+        if (result_string.contains("你看") || result_string.contains("這是什麼")) {
+            robotViewModel.takePicture();
+        }
+        else{
+            TextMessage message = new TextMessage(getCurrentTime() + " onMixUnderstandComplete: " + isError + ", result: " + result_string);
+            robotViewModel.setAction("Thinking");
+            messagesViewModel.setMessages(message);
+            messagesViewModel.setResultToSend(result_string);
+            new Thread(mRobotAPI::stopListen).start();
+        }
     }
 
     @Override

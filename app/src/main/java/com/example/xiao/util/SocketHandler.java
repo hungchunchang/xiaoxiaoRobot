@@ -10,6 +10,9 @@ import com.example.xiao.message.Message;
 import com.example.xiao.message.TextMessage;
 import com.example.xiao.viewmodel.MessagesViewModel;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -48,7 +51,7 @@ public class SocketHandler implements Serializable {
         this.messagesViewModel.getResultToSend().observeForever(result -> {
             if (result != null && !result.isEmpty()) {
                 Log.d(TAG, "Sending result to server: " + result);
-                sendData(result);
+                sendData("text", result);
             }
         });
     }
@@ -119,35 +122,51 @@ public class SocketHandler implements Serializable {
 
     private void handleMessage(String message) {
         try {
-            // 根據伺服器發送的格式解析消息
-            String[] parts = message.split("##");
-            if (parts.length != 4 || !parts[0].equals("曉曉")) {
-                Log.e(TAG, "Invalid message format: " + message);
-                return;
-            }
+            // 解析 JSON 格式的消息
+            JSONObject json = new JSONObject(message);
+            String dataType = json.getString("data_type");
+            String output = json.getString("message");
 
-            String action = parts[1];
-            String emotion = parts[2];
-            String output = parts[3];
+            // 根據 data_type 進行不同的處理
+            switch (dataType) {
+                case "heartbeat":
+                    Log.d(TAG, "Heartbeat received");
+                    // 處理心跳消息
+                    break;
 
-            // 假設這裡的 output 為 text 類型，可以根據實際情況調整
-            TextMessage receivedMessage = new TextMessage(output);
-            Log.d(TAG, "Received message: " + receivedMessage);
-            messagesViewModel.setResponseReceived(receivedMessage); // 通知 ViewModel 新消息
-            if (messageListener != null) {
-                mainHandler.post(() -> messageListener.onMessageReceived(receivedMessage));
-            } else {
-                Log.e(TAG, "MessageListener is null");
+                case "text":
+                    // 假設這裡的 output 為 text 類型，可以根據實際情況調整
+                    TextMessage receivedMessage = new TextMessage(output);
+                    Log.d(TAG, "Received message: " + receivedMessage);
+                    messagesViewModel.setResponseReceived(receivedMessage); // 通知 ViewModel 新消息
+                    if (messageListener != null) {
+                        mainHandler.post(() -> messageListener.onMessageReceived(receivedMessage));
+                    } else {
+                        Log.e(TAG, "MessageListener is null");
+                    }
+                    break;
+
+                // 其他類型的消息處理
+                default:
+                    Log.e(TAG, "Unknown data type: " + dataType);
+                    break;
             }
+        } catch (JSONException e) {
+            Log.e(TAG, "Error parsing JSON message", e);
         } catch (Exception e) {
             Log.e(TAG, "Error handling message", e);
         }
     }
 
-    public void sendData(String data) {
+    public void sendData(String dataType, String data) {
         new Thread(() -> {
             try {
-                byte[] messageBytes = data.getBytes(StandardCharsets.UTF_8);
+                // 構建 JSON 對象
+                JSONObject json = new JSONObject();
+                json.put("data_type", dataType);
+                json.put("message", data);
+
+                byte[] messageBytes = json.toString().getBytes(StandardCharsets.UTF_8);
                 int messageLength = messageBytes.length;
 
                 synchronized (this) {
@@ -155,7 +174,7 @@ public class SocketHandler implements Serializable {
                         Log.e("SocketHandler", "Not connected to server, cannot send data");
                         return;
                     }
-                    Log.d("SocketHandler", "Sending data: " + data);
+                    Log.d("SocketHandler", "Sending data: " + json.toString());
                     out.writeInt(messageLength);
                     out.write(messageBytes);
                     out.flush();
