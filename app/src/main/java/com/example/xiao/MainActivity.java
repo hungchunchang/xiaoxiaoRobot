@@ -1,20 +1,23 @@
-package com.example.kebbifour;
+package com.example.xiao;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.example.kebbifour.fragments.ChatFragment;
-import com.example.kebbifour.util.SocketHandler;
-import com.example.kebbifour.viewmodel.MessagesViewModel;
+import com.example.xiao.fragments.ChatFragment;
+import com.example.xiao.util.SocketHandler;
+import com.example.xiao.viewmodel.MessagesViewModel;
 
 public class MainActivity extends AppCompatActivity {
     private SocketHandler socketHandler;
     private Button connectButton;
+    private FrameLayout fragment_container;
     private final String TAG = MainActivity.class.getSimpleName();
     private boolean btnStartState = false;
 
@@ -26,14 +29,17 @@ public class MainActivity extends AppCompatActivity {
         // 初始化 MessagesViewModel
         MessagesViewModel messagesViewModel = new ViewModelProvider(this).get(MessagesViewModel.class);
         // 初始化 SocketHandler
-        socketHandler = new SocketHandler(this, "192.168.50.68", 12345, messagesViewModel);
+        socketHandler = new SocketHandler(this, "192.168.0.200", 1234, messagesViewModel);
+        fragment_container = findViewById(R.id.fragment_container);
         // 初始化連線按鈕
         connectButton = findViewById(R.id.connect_button);
         connectButton.setOnClickListener(v -> {
             Log.d(TAG, "Connect button clicked");
-            Toast.makeText(MainActivity.this, "trying connect to server", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.this, "正在連線中", Toast.LENGTH_SHORT).show();
             if (socketHandler.isConnected()) {
                 // 切換到聊天
+                connectButton.setVisibility(View.GONE);
+                fragment_container.setVisibility(View.VISIBLE);
                 openChatFragment();
             } else {
                 // 執行連線操作
@@ -42,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onConnected() {
                         runOnUiThread(() -> {
                             connectButton.setText("聊天");
-                            Toast.makeText(MainActivity.this, "Connected to server", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(MainActivity.this, "連線成功，開始聊天吧！", Toast.LENGTH_SHORT).show();
                         });
                     }
 

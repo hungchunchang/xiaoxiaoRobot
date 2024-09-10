@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.kebbifour"
+    namespace = "com.example.xiao"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.kebbifour"
+        applicationId = "com.example.xiao"
         minSdk = 24
         targetSdk = 34
         versionCode = 1

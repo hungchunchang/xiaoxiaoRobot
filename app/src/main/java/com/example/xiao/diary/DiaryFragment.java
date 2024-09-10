@@ -1,4 +1,4 @@
-package com.example.kebbifour.diary;
+package com.example.xiao.diary;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -9,7 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import com.example.kebbifour.R;
+import com.example.xiao.R;
 
 public class DiaryFragment extends Fragment {
     @Nullable

@@ -1,10 +1,10 @@
-package com.example.kebbifour.viewmodel;
+package com.example.xiao.viewmodel;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.example.kebbifour.message.Message;
+import com.example.xiao.message.Message;
 
 public class MessagesViewModel extends ViewModel {
     // 接收 Sever 的回應

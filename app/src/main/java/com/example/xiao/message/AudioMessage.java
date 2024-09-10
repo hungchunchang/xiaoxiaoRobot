@@ -1,4 +1,4 @@
-package com.example.kebbifour.message;
+package com.example.xiao.message;
 // 筆記：不要設為靜態，這樣每一個對象都會有自己的 audioData
 public class AudioMessage extends Message {
     private byte[] audioData;

@@ -1,4 +1,4 @@
-package com.example.kebbifour.message;
+package com.example.xiao.message;
 
 public class ImageMessage extends Message {
     private final byte[] imageData;

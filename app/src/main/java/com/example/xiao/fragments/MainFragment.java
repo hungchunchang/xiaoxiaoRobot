@@ -1,4 +1,4 @@
-package com.example.kebbifour.fragments;
+package com.example.xiao.fragments;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -10,9 +10,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import com.example.kebbifour.MainActivity;
-import com.example.kebbifour.R;
-import com.example.kebbifour.util.SocketHandler;
+import com.example.xiao.MainActivity;
+import com.example.xiao.R;
+import com.example.xiao.util.SocketHandler;
 
 
 public class MainFragment extends Fragment {

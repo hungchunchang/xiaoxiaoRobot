@@ -1,32 +1,23 @@
-package com.example.kebbifour.util;
+package com.example.xiao.util;
 
 import android.content.Context;
 import android.os.Handler;
-import android.util.Base64;
 import android.util.Log;
 
-import com.example.kebbifour.message.AudioMessage;
-import com.example.kebbifour.message.ImageMessage;
-import com.example.kebbifour.message.Message;
-import com.example.kebbifour.message.TextMessage;
-import com.example.kebbifour.viewmodel.MessagesViewModel;
+import com.example.xiao.message.AudioMessage;
+import com.example.xiao.message.ImageMessage;
+import com.example.xiao.message.Message;
+import com.example.xiao.message.TextMessage;
+import com.example.xiao.viewmodel.MessagesViewModel;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.function.Function;
 
 public class SocketHandler implements Serializable {
@@ -41,10 +32,8 @@ public class SocketHandler implements Serializable {
     private OnMessageReceivedListener messageListener;
     private ConnectionListener connectionListener;
     private final Map<String, Function<String, Message>> messageHandlers = new HashMap<>();
-    private Timer heartbeatTimer;
-    private MessagesViewModel messagesViewModel;
+    private final MessagesViewModel messagesViewModel;
 
-    private static final int HEARTBEAT_INTERVAL = 30000; // 心跳訊號間隔（毫秒）
     private static final String TAG = SocketHandler.class.getSimpleName();
 
     public SocketHandler(Context context, String serverName, int serverPort, MessagesViewModel messagesViewModel) {
@@ -52,22 +41,22 @@ public class SocketHandler implements Serializable {
         this.serverName = serverName;
         this.serverPort = serverPort;
         this.mainHandler = new Handler(context.getMainLooper());
-        this.messagesViewModel = messagesViewModel; // 使用傳入的實例
+        this.messagesViewModel = messagesViewModel;
 
         initializeMessageHandlers();
 
         this.messagesViewModel.getResultToSend().observeForever(result -> {
             if (result != null && !result.isEmpty()) {
                 Log.d(TAG, "Sending result to server: " + result);
-                sendData(result, "text");
+                sendData(result);
             }
         });
     }
 
     private void initializeMessageHandlers() {
         messageHandlers.put("text", TextMessage::new);
-        messageHandlers.put("audio", msg -> new AudioMessage(Base64.decode(msg, Base64.DEFAULT)));
-        messageHandlers.put("image", msg -> new ImageMessage(Base64.decode(msg, Base64.DEFAULT)));
+        messageHandlers.put("audio", msg -> new AudioMessage(android.util.Base64.decode(msg, android.util.Base64.DEFAULT)));
+        messageHandlers.put("image", msg -> new ImageMessage(android.util.Base64.decode(msg, android.util.Base64.DEFAULT)));
     }
 
     public void connect(ConnectionListener listener) {
@@ -78,9 +67,7 @@ public class SocketHandler implements Serializable {
                 out = new DataOutputStream(socket.getOutputStream());
                 in = new DataInputStream(socket.getInputStream());
                 isConnected = true; // 連接成功標誌
-                Log.d("SocketHandler", "Connected to server");
-
-                startHeartbeat();
+                Log.d(TAG, "Connected to server");
 
                 if (connectionListener != null) {
                     mainHandler.post(() -> connectionListener.onConnected());
@@ -90,22 +77,12 @@ public class SocketHandler implements Serializable {
                 startListening();
 
             } catch (Exception e) {
-                Log.e("SocketHandler", "Error connecting to server", e);
+                Log.e(TAG, "Error connecting to server", e);
                 if (connectionListener != null) {
                     mainHandler.post(() -> connectionListener.onDisconnected());
                 }
             }
         }).start();
-    }
-
-    private void startHeartbeat() {
-        heartbeatTimer = new Timer();
-        heartbeatTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                sendData("", "heartbeat");
-            }
-        }, 0, HEARTBEAT_INTERVAL);
     }
 
     private void startListening() {
@@ -142,61 +119,35 @@ public class SocketHandler implements Serializable {
 
     private void handleMessage(String message) {
         try {
-            JSONObject json = new JSONObject(message);
-            String dataType = json.getString("data_type");
-            String msg = json.getString("message");
-
-            Function<String, Message> handler = messageHandlers.get(dataType);
-            if (handler != null) {
-                Message receivedMessage = handler.apply(msg);
-                Log.d(TAG, "Received message: " + receivedMessage);
-                messagesViewModel.setResponseReceived(receivedMessage); // 通知 ViewModel 新消息
-                if (messageListener != null) {
-                    mainHandler.post(() -> messageListener.onMessageReceived(receivedMessage));
-                } else {
-                    Log.e(TAG, "MessageListener is null");
-                }
-            } else {
-                Log.e(TAG, "Unsupported data type: " + dataType);
+            // 根據伺服器發送的格式解析消息
+            String[] parts = message.split("##");
+            if (parts.length != 4 || !parts[0].equals("曉曉")) {
+                Log.e(TAG, "Invalid message format: " + message);
+                return;
             }
-        } catch (JSONException e) {
-            Log.e(TAG, "Error parsing JSON message", e);
+
+            String action = parts[1];
+            String emotion = parts[2];
+            String output = parts[3];
+
+            // 假設這裡的 output 為 text 類型，可以根據實際情況調整
+            TextMessage receivedMessage = new TextMessage(output);
+            Log.d(TAG, "Received message: " + receivedMessage);
+            messagesViewModel.setResponseReceived(receivedMessage); // 通知 ViewModel 新消息
+            if (messageListener != null) {
+                mainHandler.post(() -> messageListener.onMessageReceived(receivedMessage));
+            } else {
+                Log.e(TAG, "MessageListener is null");
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error handling message", e);
         }
     }
-    public void sendData(Object data, String dataType) {
+
+    public void sendData(String data) {
         new Thread(() -> {
             try {
-                JSONObject json = new JSONObject();
-                json.put("data_type", dataType);
-
-                switch (dataType) {
-                    case "text":
-                    case "heartbeat":
-                        json.put("message", data);
-                        break;
-                    case "image": {
-                        byte[] fileData;
-                        if (data instanceof File) {
-                            fileData = readFileToByteArray((File) data);
-                        } else {
-                            fileData = (byte[]) data;
-                        }
-                        String encodedData = Base64.encodeToString(fileData, Base64.DEFAULT);
-                        json.put("message", encodedData);
-                        break;
-                    }
-                    case "audio": {
-                        byte[] audioData = (byte[]) data;
-                        String encodedData = Base64.encodeToString(audioData, Base64.DEFAULT);
-                        json.put("message", encodedData);
-                        break;
-                    }
-                    default:
-                        Log.e("SocketHandler", "Unsupported data type: " + dataType);
-                        return;
-                }
-
-                byte[] messageBytes = json.toString().getBytes(StandardCharsets.UTF_8);
+                byte[] messageBytes = data.getBytes(StandardCharsets.UTF_8);
                 int messageLength = messageBytes.length;
 
                 synchronized (this) {
@@ -204,7 +155,7 @@ public class SocketHandler implements Serializable {
                         Log.e("SocketHandler", "Not connected to server, cannot send data");
                         return;
                     }
-                    Log.d("SocketHandler", "Sending data: " + json);
+                    Log.d("SocketHandler", "Sending data: " + data);
                     out.writeInt(messageLength);
                     out.write(messageBytes);
                     out.flush();
@@ -216,26 +167,9 @@ public class SocketHandler implements Serializable {
         }).start();
     }
 
-
-    private byte[] readFileToByteArray(File file) throws IOException {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        try (FileInputStream fis = new FileInputStream(file)) {
-            byte[] buffer = new byte[4096];
-            int bytesRead;
-            while ((bytesRead = fis.read(buffer)) != -1) {
-                bos.write(buffer, 0, bytesRead);
-            }
-        }
-        return bos.toByteArray();
-    }
-
     public void disconnect() {
         synchronized (this) {
             try {
-                if (heartbeatTimer != null) {
-                    heartbeatTimer.cancel();
-                    heartbeatTimer = null;
-                }
                 if (socket != null) {
                     socket.close();
                     socket = null;
