@@ -1,15 +1,40 @@
+# Ignore Android Studio specific files
+.idea/
 *.iml
 .gradle
 /local.properties
-/.idea/caches
+/.idea/workspace.xml
 /.idea/libraries
 /.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
+
+# Ignore build and output directories
+build/
+captures/
+.externalNativeBuild/
+
+# Ignore system files
 .DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+*.log
+
+# Ignore Gradle-specific files
+.gradle/
+**/build/
+
+# Ignore miscellaneous
+*.apk
+*.ap_
+*.hprof
+
+# Avoid uploading Android Studio generated project files
+.idea/
+.gradle/
+captures/
 local.properties
+
+# Ignore Proguard mapping files
+proguard/
+
+# Ignore IntelliJ IDEA specific files
+.idea/
+*.iml
+
