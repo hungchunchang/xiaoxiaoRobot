@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">曉曉</string>
+    <string name="app_name">曉曉2</string>
     <string name="sent_hello_world">Sent \'hello world\' to backend</string>
 
     <string name="sent">Sent</string>

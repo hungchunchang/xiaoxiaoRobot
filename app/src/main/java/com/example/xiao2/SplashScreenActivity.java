@@ -1,4 +1,4 @@
-package com.example.xiao;
+package com.example.xiao2;
 
 import android.Manifest;
 import android.content.Intent;

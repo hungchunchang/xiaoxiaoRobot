@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.xiao"
+    namespace = "com.example.xiao2"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.xiao"
+        applicationId = "com.example.xiao2"
         minSdk = 24
         targetSdk = 34
         versionCode = 1

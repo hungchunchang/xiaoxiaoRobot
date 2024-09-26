@@ -1,12 +1,9 @@
-package com.example.xiao.listeners;
+package com.example.xiao2.listeners;
 
 import android.util.Log;
 
-import com.example.xiao.message.TextMessage;
-import com.example.xiao.util.SocketHandler;
-import com.example.xiao.viewmodel.MessagesViewModel;
-import com.example.xiao.viewmodel.RobotViewModel;
-import com.nuwarobotics.service.agent.NuwaRobotAPI;
+import com.example.xiao2.message.TextMessage;
+import com.example.xiao2.viewmodel.RobotViewModel;
 import com.nuwarobotics.service.agent.VoiceEventListener;
 import com.nuwarobotics.service.agent.VoiceResultJsonParser;
 
@@ -19,16 +16,10 @@ import java.util.Locale;
 
 public class CustomVoiceEventListener implements VoiceEventListener {
 
-    private static final String TAG = CustomVoiceEventListener.class.getSimpleName();
-    private final NuwaRobotAPI mRobotAPI;
-    private final MessagesViewModel messagesViewModel;
+    private static final String TAG = "CustomVoiceEventListener";
     private final RobotViewModel robotViewModel;
-    private final SocketHandler socketHandler;
 
-    public CustomVoiceEventListener(NuwaRobotAPI robotAPI, MessagesViewModel messagesViewModel, RobotViewModel robotViewModel, SocketHandler handler) {
-        this.mRobotAPI = robotAPI;
-        this.messagesViewModel = messagesViewModel;
-        this.socketHandler = handler;
+    public CustomVoiceEventListener(RobotViewModel robotViewModel) {
         this.robotViewModel = robotViewModel;
     }
 
@@ -38,9 +29,9 @@ public class CustomVoiceEventListener implements VoiceEventListener {
     @Override
     public void onTTSComplete(boolean isError) {
         Log.d(TAG, "TTS Complete, starting to listen again");
-        startListening();
+        robotViewModel.startListening();
         // Add action and expression for Idle phase after TTS completes
-        robotViewModel.setAction("Idle");
+        //robotViewModel.setAction("Idle");
     }
 
     @Override
@@ -53,15 +44,13 @@ public class CustomVoiceEventListener implements VoiceEventListener {
 
         if (result_string == null || result_string.trim().isEmpty()) {
             Log.e(TAG, "Result is empty, not sending to server");
-            startListening();
+            robotViewModel.startListening();
             return;
         }
 
         // Add action and expression for Thinking phase
         robotViewModel.setAction("Thinking");
-
-        messagesViewModel.setResultToSend(result_string);
-        mRobotAPI.stopListen();
+        robotViewModel.stopListening();
     }
 
     @Override
@@ -85,7 +74,7 @@ public class CustomVoiceEventListener implements VoiceEventListener {
             Log.e(TAG, "MixUnderstand error occurred");
             robotViewModel.setAction("Listening");
 
-            new Thread(mRobotAPI::startMixUnderstand).start();
+            new Thread(robotViewModel::startListening).start();
             return;
         }
 
@@ -93,20 +82,21 @@ public class CustomVoiceEventListener implements VoiceEventListener {
             Log.e(TAG, "Result is empty, not sending to server");
             robotViewModel.setAction("Listening");
 
-            new Thread(mRobotAPI::startMixUnderstand).start();
+            new Thread(robotViewModel::startListening).start();
             return;
         }
 
         // 檢查是否包含拍照指令
         if (result_string.contains("你看") || result_string.contains("這是什麼")) {
-            robotViewModel.takePicture();
+            Log.d(TAG, "going to take picture");
+            robotViewModel.takePicture(result_string);
         }
         else{
+            Log.d(TAG, "going to send message");
             TextMessage message = new TextMessage(getCurrentTime() + " onMixUnderstandComplete: " + isError + ", result: " + result_string);
-            robotViewModel.setAction("Thinking");
-            messagesViewModel.setMessages(message);
-            messagesViewModel.setResultToSend(result_string);
-            new Thread(mRobotAPI::stopListen).start();
+            //robotViewModel.setAction("Thinking");
+            robotViewModel.sendResultToServerViaHttp(result_string, "");
+            //new Thread(robotViewModel::stopListening).start();
         }
     }
 
@@ -118,11 +108,7 @@ public class CustomVoiceEventListener implements VoiceEventListener {
 
     @Override
     public void onGrammarState(boolean isError, String s) {
-        if (!isError) {
-            startListening();
-        } else {
-            Log.d(TAG, "onGrammarState error, " + s);
-        }
+        Log.d(TAG, "onGrammarState error, " + s);
     }
 
     @Override
@@ -131,11 +117,6 @@ public class CustomVoiceEventListener implements VoiceEventListener {
     @Override
     public void onHotwordChange(HotwordState hotwordState, HotwordType hotwordType, String s) {}
 
-    private void startListening() {
-        Log.d(TAG, "Starting MixUnderstand");
-        robotViewModel.setAction("Listening");
-        mRobotAPI.startMixUnderstand();
-    }
 
     private String getCurrentTime() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HH:mm:ss ", Locale.getDefault());

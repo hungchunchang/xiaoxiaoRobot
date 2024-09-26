@@ -1,19 +1,18 @@
-package com.example.xiao.viewmodel;
+package com.example.xiao2.viewmodel;
 
-import android.graphics.Bitmap;
 import android.util.Log;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.example.xiao.listeners.CustomRobotEventListener;
-import com.example.xiao.util.CameraHandler;
-import com.example.xiao.util.SocketHandler;
+import com.example.xiao2.message.Message;
+import com.example.xiao2.message.TextMessage;
+import com.example.xiao2.repository.DataRepository;
+import com.example.xiao2.util.CameraHandler;
+import com.example.xiao2.util.HttpHandlerInterface;
 import com.nuwarobotics.service.agent.NuwaRobotAPI;
 
-import java.io.ByteArrayOutputStream;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
@@ -26,36 +25,46 @@ public class RobotViewModel extends ViewModel {
     private final Map<String, String> motionMap;
     private final Map<String, String> expressionMap;
     private boolean mMotionComplete = true;
-    private final CustomRobotEventListener customRobotEventListener;
     private final CameraHandler cameraHandler;
-    private final SocketHandler socketHandler;
+    private final HttpHandlerInterface httpHandler;
+    private final DataRepository dataRepository;
     private Timer timer;
     private TimerTask repeatTask;
+    private final String TAG = "RobotViewModel";
+    private final MutableLiveData<Message> receivedMessage = new MutableLiveData<>();
 
-    public RobotViewModel(NuwaRobotAPI robotAPI, CustomRobotEventListener customRobotEventListener, CameraHandler cameraHandler) {
+    public RobotViewModel(NuwaRobotAPI robotAPI, HttpHandlerInterface httpHandler, DataRepository dataRepository, CameraHandler cameraHandler) {
         this.mRobotAPI = robotAPI;
-        this.customRobotEventListener = customRobotEventListener;
-        this.socketHandler = customRobotEventListener.getSocketHandler();
+        this.httpHandler = httpHandler;
+        this.dataRepository = dataRepository;
         this.cameraHandler = cameraHandler;
         this.motionMap = new HashMap<>();
         this.expressionMap = new HashMap<>();
         initializeMotionAndExpressionMaps();
-        mRobotAPI.registerRobotEventListener(customRobotEventListener);
     }
 
     private void initializeMotionAndExpressionMaps() {
         // Example mappings
         motionMap.put("Idle", "666_SA_Discover");
         motionMap.put("Listening", "666_SA_Think");
-        motionMap.put("Thinking", "666_DA_Intospace");
+        motionMap.put("Thinking", "666_PE_PushGlasses");
         motionMap.put("Speaking", "666_RE_Ask");
+        motionMap.put("TakingPicture", "");
 
         expressionMap.put("Idle", "TTS_Contempt");
         expressionMap.put("Listening", "TTS_Surprise");
-        expressionMap.put("Thinking", "TTS_JoyB");
+        expressionMap.put("Thinking", "TTS_Contempt");
         expressionMap.put("Speaking", "TTS_PeaceA");
+        expressionMap.put("TakingPicture", "TTS_JoyB");
     }
 
+    public LiveData<Message> getReceivedMessage() {
+        return dataRepository.getReceivedMessage();
+    }
+
+    public void setMessage(Message message) {
+        receivedMessage.setValue(message);
+    }
     public LiveData<String> getCurrentAction() {
         return currentAction;
     }
@@ -64,11 +73,16 @@ public class RobotViewModel extends ViewModel {
         return currentExpression;
     }
 
+    // 機器人行為控制
     public void setAction(String actionKey) {
         new Thread(() -> {
             String motion = motionMap.get(actionKey);
             String expression = expressionMap.get(actionKey);
             mMotionComplete = false;
+            mRobotAPI.mouthOff();
+            if(actionKey.equals("Speaking")){
+                mRobotAPI.mouthOn(200);
+            }
 
             if (motion != null) {
                 mRobotAPI.motionStop(true); // 停止當前動作
@@ -81,7 +95,6 @@ public class RobotViewModel extends ViewModel {
                 mRobotAPI.UnityFaceManager().showUnity(); // Launch face
                 mRobotAPI.UnityFaceManager().playFaceAnimation(expression);
                 currentExpression.postValue(expression);
-                customRobotEventListener.setExpressionMode(true);
             } else {
                 Log.e("RobotViewModel", "Expression not found for action key: " + actionKey);
             }
@@ -119,21 +132,37 @@ public class RobotViewModel extends ViewModel {
         }
     }
 
-    public CustomRobotEventListener getCustomRobotEventListener() {
-        return customRobotEventListener;
+    // 機器人語音輸入控制
+    public void startListening() {
+        setAction("Listening");
+        mRobotAPI.startMixUnderstand();
     }
 
-    public void takePicture() {
-        cameraHandler.takePicture();
+    public void stopListening(){
+        mRobotAPI.stopListen();
     }
-    public void handleCapturedImage(Bitmap imageBitmap) {
-        // 將 Bitmap 轉換為 Base64 字符串
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
-        byte[] byteArray = byteArrayOutputStream.toByteArray();
-        String encodedImage = Base64.getEncoder().encodeToString(byteArray);
 
-        // 發送圖片數據到伺服器
-        socketHandler.sendData(encodedImage);
+    // 將聽到的句子通過 http 傳出去
+    public void sendResultToServerViaHttp(String resultText, String imageBitmap) {
+        Log.d(TAG, "Send result to server");
+        setAction("Thinking");
+        dataRepository.sendDataViaHttp(resultText,imageBitmap);
+    }
+
+
+    // 機器人語音輸出控制
+    public void speak(Message message) {
+        setAction("Speaking");
+        if (message instanceof TextMessage) {
+            TextMessage textMessage = (TextMessage) message;
+            String text = textMessage.getText();
+            mRobotAPI.startTTS(text);
+        }
+    }
+
+    public void takePicture(String result_string) {
+        Log.d(TAG, "Taking picture...");
+        setAction("TakingPicture");
+        cameraHandler.takePicture(result_string);
     }
 }

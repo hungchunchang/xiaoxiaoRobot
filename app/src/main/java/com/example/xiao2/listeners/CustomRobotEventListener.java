@@ -1,10 +1,8 @@
-package com.example.xiao.listeners;
+package com.example.xiao2.listeners;
 
 import android.util.Log;
 
-import com.example.xiao.util.SocketHandler;
-import com.example.xiao.viewmodel.MessagesViewModel;
-import com.example.xiao.viewmodel.RobotViewModel;
+import com.example.xiao2.viewmodel.RobotViewModel;
 import com.nuwarobotics.service.agent.NuwaRobotAPI;
 import com.nuwarobotics.service.agent.RobotEventListener;
 import com.nuwarobotics.service.agent.SimpleGrammarData;
@@ -12,22 +10,18 @@ import com.nuwarobotics.service.agent.SimpleGrammarData;
 public class CustomRobotEventListener implements RobotEventListener {
     private static final String TAG = "CustomRobotEventListener";
     private final NuwaRobotAPI mRobotAPI;
-    private final MessagesViewModel messagesViewModel;
     private RobotViewModel robotViewModel;
-    private final SocketHandler socketHandler;
     private boolean isExpressionMode = false;
 
-    public CustomRobotEventListener(NuwaRobotAPI robotAPI, MessagesViewModel messagesModelView, RobotViewModel robotViewModel, SocketHandler socketHandler) {
+    public CustomRobotEventListener(NuwaRobotAPI robotAPI, RobotViewModel robotViewModel) {
         this.mRobotAPI = robotAPI;
-        this.messagesViewModel = messagesModelView;
-        this.socketHandler = socketHandler;
         this.robotViewModel = robotViewModel;
     }
 
     @Override
     public void onWikiServiceStart() {
         Log.d(TAG, "onWikiServiceStart, robot ready to be controlled");
-        mRobotAPI.registerVoiceEventListener(new CustomVoiceEventListener(mRobotAPI, messagesViewModel, robotViewModel, socketHandler));
+        mRobotAPI.registerVoiceEventListener(new CustomVoiceEventListener(robotViewModel));
         prepareGrammarToRobot();
     }
 

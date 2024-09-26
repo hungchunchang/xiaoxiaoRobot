@@ -1,14 +1,14 @@
-package com.example.xiao.util;
+package com.example.xiao2.util;
 
 import android.content.Context;
 import android.os.Handler;
 import android.util.Log;
 
-import com.example.xiao.message.AudioMessage;
-import com.example.xiao.message.ImageMessage;
-import com.example.xiao.message.Message;
-import com.example.xiao.message.TextMessage;
-import com.example.xiao.viewmodel.MessagesViewModel;
+import com.example.xiao2.message.AudioMessage;
+import com.example.xiao2.message.ImageMessage;
+import com.example.xiao2.message.Message;
+import com.example.xiao2.message.TextMessage;
+import com.example.xiao2.repository.DataRepository;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-public class SocketHandler implements Serializable {
+public class SocketHandler implements SocketHandlerInterface, Serializable {
     private final String serverName;
     private final int serverPort;
     private final transient Handler mainHandler;
@@ -35,25 +35,21 @@ public class SocketHandler implements Serializable {
     private OnMessageReceivedListener messageListener;
     private ConnectionListener connectionListener;
     private final Map<String, Function<String, Message>> messageHandlers = new HashMap<>();
-    private final MessagesViewModel messagesViewModel;
 
-    private static final String TAG = SocketHandler.class.getSimpleName();
+    private final String TAG = SocketHandler.class.getSimpleName();
+    private DataRepository dataRepository;
 
-    public SocketHandler(Context context, String serverName, int serverPort, MessagesViewModel messagesViewModel) {
+
+    public SocketHandler(Context context, String serverName, int serverPort) {
         this.context = context;
         this.serverName = serverName;
         this.serverPort = serverPort;
         this.mainHandler = new Handler(context.getMainLooper());
-        this.messagesViewModel = messagesViewModel;
-
         initializeMessageHandlers();
+    }
 
-        this.messagesViewModel.getResultToSend().observeForever(result -> {
-            if (result != null && !result.isEmpty()) {
-                Log.d(TAG, "Sending result to server: " + result);
-                sendData("text", result);
-            }
-        });
+    public void setDataRepository(DataRepository dataRepository) {
+        this.dataRepository = dataRepository;
     }
 
     private void initializeMessageHandlers() {
@@ -61,6 +57,7 @@ public class SocketHandler implements Serializable {
         messageHandlers.put("audio", msg -> new AudioMessage(android.util.Base64.decode(msg, android.util.Base64.DEFAULT)));
         messageHandlers.put("image", msg -> new ImageMessage(android.util.Base64.decode(msg, android.util.Base64.DEFAULT)));
     }
+
 
     public void connect(ConnectionListener listener) {
         this.connectionListener = listener;
@@ -122,47 +119,42 @@ public class SocketHandler implements Serializable {
 
     private void handleMessage(String message) {
         try {
-            // 解析 JSON 格式的消息
             JSONObject json = new JSONObject(message);
             String dataType = json.getString("data_type");
             String output = json.getString("message");
 
-            // 根據 data_type 進行不同的處理
             switch (dataType) {
                 case "heartbeat":
                     Log.d(TAG, "Heartbeat received");
-                    // 處理心跳消息
                     break;
 
                 case "text":
-                    // 假設這裡的 output 為 text 類型，可以根據實際情況調整
                     TextMessage receivedMessage = new TextMessage(output);
                     Log.d(TAG, "Received message: " + receivedMessage);
-                    messagesViewModel.setResponseReceived(receivedMessage); // 通知 ViewModel 新消息
-                    if (messageListener != null) {
-                        mainHandler.post(() -> messageListener.onMessageReceived(receivedMessage));
-                    } else {
-                        Log.e(TAG, "MessageListener is null");
-                    }
+                    dataRepository.updateMessage(receivedMessage);
                     break;
 
-                // 其他類型的消息處理
                 default:
                     Log.e(TAG, "Unknown data type: " + dataType);
                     break;
             }
         } catch (JSONException e) {
             Log.e(TAG, "Error parsing JSON message", e);
-        } catch (Exception e) {
-            Log.e(TAG, "Error handling message", e);
         }
     }
 
     public void sendData(String dataType, String data) {
+        if (data == null || data.isEmpty()) {
+            Log.e(TAG, "Data to send is null or empty");
+            return;
+        }
+
         new Thread(() -> {
             try {
-                // 構建 JSON 對象
                 JSONObject json = new JSONObject();
+//                uuid
+                json.put("id", "id");
+                json.put("user_name","user_test");
                 json.put("data_type", dataType);
                 json.put("message", data);
 
@@ -170,18 +162,18 @@ public class SocketHandler implements Serializable {
                 int messageLength = messageBytes.length;
 
                 synchronized (this) {
-                    if (!isConnected || out == null) {
-                        Log.e("SocketHandler", "Not connected to server, cannot send data");
+                    if (!isConnected() || out == null) {
+                        Log.e(TAG, "Not connected to server, cannot send data");
                         return;
                     }
-                    Log.d("SocketHandler", "Sending data: " + json.toString());
+                    Log.d(TAG, "Sending data: " + json.toString());
                     out.writeInt(messageLength);
                     out.write(messageBytes);
                     out.flush();
                 }
-                Log.d("SocketHandler", "Data sent successfully");
+                Log.d(TAG, "Data sent successfully");
             } catch (Exception e) {
-                Log.e("SocketHandler", "Error sending data to the server", e);
+                Log.e(TAG, "Error sending data to the server", e);
             }
         }).start();
     }
@@ -211,9 +203,6 @@ public class SocketHandler implements Serializable {
         }
     }
 
-    public void close() {
-        disconnect();
-    }
 
     public boolean isConnected() {
         return isConnected;

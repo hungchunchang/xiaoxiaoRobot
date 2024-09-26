@@ -1,4 +1,4 @@
-package com.example.xiao.message;
+package com.example.xiao2.message;
 
 public abstract class Message {
     public int length;

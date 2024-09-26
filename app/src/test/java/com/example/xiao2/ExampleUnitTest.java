@@ -1,4 +1,4 @@
-package com.example.xiao;
+package com.example.xiao2;
 
 import org.junit.Test;
 
