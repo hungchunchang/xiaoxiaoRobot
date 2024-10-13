@@ -23,19 +23,15 @@ public class RobotViewModel extends ViewModel {
     private final MutableLiveData<String> currentExpression = new MutableLiveData<>();
     private final Map<String, String> motionMap;
     private final Map<String, String> expressionMap;
-    private boolean mMotionComplete = true;
     private final CameraHandler cameraHandler;
-    private final HttpHandlerInterface httpHandler;
     private final DataRepository dataRepository;
     private Timer timer;
-    private TimerTask repeatTask;
     private final String TAG = "RobotViewModel";
     private final MutableLiveData<String> receivedMessage = new MutableLiveData<>();
     private final CustomRobotEventListener customRobotEventListener;
 
     public RobotViewModel(NuwaRobotAPI robotAPI, HttpHandlerInterface httpHandler, DataRepository dataRepository, CameraHandler cameraHandler, CustomRobotEventListener customRobotEventListener) {
         this.mRobotAPI = robotAPI;
-        this.httpHandler = httpHandler;
         this.dataRepository = dataRepository;
         this.cameraHandler = cameraHandler;
         this.customRobotEventListener = customRobotEventListener;
@@ -79,7 +75,6 @@ public class RobotViewModel extends ViewModel {
         new Thread(() -> {
             String motion = motionMap.get(actionKey);
             String expression = expressionMap.get(actionKey);
-            mMotionComplete = false;
             mRobotAPI.mouthOff();
             if(actionKey.equals("Speaking")){
                 mRobotAPI.mouthOn(200);
@@ -107,7 +102,7 @@ public class RobotViewModel extends ViewModel {
             timer.cancel();
         }
         timer = new Timer();
-        repeatTask = new TimerTask() {
+        TimerTask repeatTask = new TimerTask() {
             @Override
             public void run() {
                 setAction(actionKey);
@@ -123,7 +118,6 @@ public class RobotViewModel extends ViewModel {
     }
 
     public void setMotionComplete(boolean motionComplete) {
-        this.mMotionComplete = motionComplete;
     }
 
     public void prepareAction(String actionKey) {
