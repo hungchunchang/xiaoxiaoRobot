@@ -120,10 +120,10 @@ public class CustomVoiceEventListener implements VoiceEventListener {
     public void onHotwordChange(HotwordState hotwordState, HotwordType hotwordType, String s) {}
 
 
-    private String getCurrentTime() {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HH:mm:ss ", Locale.getDefault());
-        return sdf.format(new Date());
-    }
+//    private String getCurrentTime() {
+//        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HH:mm:ss ", Locale.getDefault());
+//        return sdf.format(new Date());
+//    }
 
     private boolean isValidJson(String json) {
         try {
