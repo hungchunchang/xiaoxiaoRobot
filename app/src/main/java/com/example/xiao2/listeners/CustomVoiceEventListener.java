@@ -9,9 +9,6 @@ import com.nuwarobotics.service.agent.VoiceResultJsonParser;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
 
 public class CustomVoiceEventListener implements VoiceEventListener {
 
