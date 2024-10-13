@@ -16,7 +16,6 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.xiao2.fragment.ButtonFragment;
@@ -36,13 +35,10 @@ import java.util.concurrent.Executors;
 public class MainActivity extends AppCompatActivity implements RobotEventCallback {
     private static final String TAG = MainActivity.class.getSimpleName();
     private NuwaRobotAPI mRobotAPI;
-    private HttpHandler httpHandler;
     private CameraHandler cameraHandler;
-    private DataRepository dataRepository;
     private RobotViewModel robotViewModel;
     private CustomRobotEventListener customRobotEventListener;
     private EditText usernameEditText, passwordEditText;
-    private Button loginButton;
     private View loginContainer;
     private View fragmentContainer;
 
@@ -80,7 +76,7 @@ public class MainActivity extends AppCompatActivity implements RobotEventCallbac
         // 初始化 UI 元件
         usernameEditText = findViewById(R.id.usernameEditText);
         passwordEditText = findViewById(R.id.passwordEditText);
-        loginButton = findViewById(R.id.loginButton);
+        Button loginButton = findViewById(R.id.loginButton);
         loginContainer = findViewById(R.id.loginContainer);
         fragmentContainer = findViewById(R.id.fragment_container);
 
@@ -90,9 +86,9 @@ public class MainActivity extends AppCompatActivity implements RobotEventCallbac
         Log.d(TAG, "NuwaRobotAPI initialized");
 
         // 初始化其他組件
-        httpHandler = new HttpHandler(executorService);
+        HttpHandler httpHandler = new HttpHandler(executorService);
         cameraHandler = new CameraHandler(this);
-        dataRepository = new DataRepository(httpHandler, executorService);
+        DataRepository dataRepository = new DataRepository(httpHandler, executorService);
         httpHandler.setDataRepository(dataRepository);
         cameraHandler.setDataRepository(dataRepository);
 
@@ -147,7 +143,7 @@ public class MainActivity extends AppCompatActivity implements RobotEventCallbac
             if (view instanceof EditText) {
                 Rect outRect = new Rect();
                 view.getGlobalVisibleRect(outRect);
-                Log.d(TAG, "Rect: " + outRect.toString());
+                Log.d(TAG, "Rect: " + outRect);
                 Log.d(TAG, "Event coordinates: " + event.getRawX() + ", " + event.getRawY());
                 if (!outRect.contains((int) event.getRawX(), (int) event.getRawY())) {
                     view.clearFocus();
