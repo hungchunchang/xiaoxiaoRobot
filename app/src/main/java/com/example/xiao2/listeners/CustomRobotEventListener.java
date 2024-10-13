@@ -2,27 +2,44 @@ package com.example.xiao2.listeners;
 
 import android.util.Log;
 
+import com.example.xiao2.MainActivity;
+import com.example.xiao2.util.RobotEventCallback;
 import com.example.xiao2.viewmodel.RobotViewModel;
 import com.nuwarobotics.service.agent.NuwaRobotAPI;
 import com.nuwarobotics.service.agent.RobotEventListener;
 import com.nuwarobotics.service.agent.SimpleGrammarData;
 
 public class CustomRobotEventListener implements RobotEventListener {
+    private boolean isProcessingLongPress = false;
     private static final String TAG = "CustomRobotEventListener";
     private final NuwaRobotAPI mRobotAPI;
-    private RobotViewModel robotViewModel;
+    private final RobotViewModel robotViewModel;
     private boolean isExpressionMode = false;
+    private final CustomVoiceEventListener customVoiceEventListener;
+    private final RobotEventCallback callback;
 
-    public CustomRobotEventListener(NuwaRobotAPI robotAPI, RobotViewModel robotViewModel) {
+    public CustomRobotEventListener(NuwaRobotAPI robotAPI, RobotViewModel robotViewModel, RobotEventCallback callback) {
         this.mRobotAPI = robotAPI;
+        this.callback = callback;
         this.robotViewModel = robotViewModel;
+        this.customVoiceEventListener = new CustomVoiceEventListener(robotViewModel);
+        mRobotAPI.registerVoiceEventListener(this.customVoiceEventListener);
     }
 
     @Override
     public void onWikiServiceStart() {
         Log.d(TAG, "onWikiServiceStart, robot ready to be controlled");
-        mRobotAPI.registerVoiceEventListener(new CustomVoiceEventListener(robotViewModel));
+        mRobotAPI.requestSensor(NuwaRobotAPI.SENSOR_TOUCH | NuwaRobotAPI.SENSOR_PIR | NuwaRobotAPI.SENSOR_DROP );
+
         prepareGrammarToRobot();
+    }
+    public void setChannel(String channel) {
+        Log.d("CustomRobotEventListener", "setChannel called with channel: " + channel);
+        if (customVoiceEventListener != null) {
+            customVoiceEventListener.setChannel(channel);
+        } else {
+            Log.e("CustomRobotEventListener", "customVoiceEventListener is null in setChannel");
+        }
     }
 
     private void prepareGrammarToRobot() {
@@ -87,10 +104,32 @@ public class CustomRobotEventListener implements RobotEventListener {
     public void onPIREvent(int i) {}
 
     @Override
-    public void onTap(int i) {}
+    public void onTap(int i) {
+        Log.d(TAG, "Tap with "+ i);
+    }
 
-    @Override
-    public void onLongPress(int i) {}
+    public void onLongPress(int i) {
+        Log.d(TAG, "onLongPress: Long press detected with value: " + i);
+
+        if (i == 3 && !isProcessingLongPress) {  // 如果按住的是對應的按鍵且不在处理中
+            isProcessingLongPress = true;
+            Log.d(TAG, "onLongPress: Long press action for value 3, returning to ButtonFragment.");
+
+            callback.postToUiThread(() -> {
+                Log.d(TAG, "onLongPress: Interrupting and resetting robot.");
+                robotViewModel.interruptAndReset();  // 重置機器人狀態
+
+                Log.d(TAG, "onLongPress: Switching from VideoFragment to ButtonFragment.");
+                if (callback instanceof MainActivity) {
+                    MainActivity activity = (MainActivity) callback;
+                    activity.switchToButtonFragment();
+                }
+
+                Log.d(TAG, "onLongPress: Switched to ButtonFragment.");
+                isProcessingLongPress = false;
+            });
+        }
+    }
 
     @Override
     public void onWindowSurfaceReady() {}
@@ -122,11 +161,5 @@ public class CustomRobotEventListener implements RobotEventListener {
     @Override
     public void onMotorErrorEvent(int i, int i1) {}
 
-    public void setExpressionMode(boolean expressionMode) {
-        isExpressionMode = expressionMode;
-    }
 
-    public void setRobotViewModel(RobotViewModel robotViewModel) {
-        this.robotViewModel = robotViewModel;
-    }
 }

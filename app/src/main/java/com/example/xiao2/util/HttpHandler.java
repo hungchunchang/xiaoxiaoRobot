@@ -1,96 +1,104 @@
 package com.example.xiao2.util;
 
-import android.content.Context;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
+
+import androidx.annotation.NonNull;
 
 import com.example.xiao2.repository.DataRepository;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.ExecutorService;
 
 public class HttpHandler implements HttpHandlerInterface, Serializable {
 
     private static final String TAG = HttpHandler.class.getSimpleName();
-    private final Context context;
     private final Handler mainHandler;
     private DataRepository dataRepository;
+    private final ExecutorService executorService;
 
-    // Constructor that initializes the context and handler for UI updates
-    public HttpHandler(Context context) {
-        this.context = context;
-        this.mainHandler = new Handler(context.getMainLooper());
+    // 更新構造函數以接受 ExecutorService
+    public HttpHandler(ExecutorService executorService) {
+        this.mainHandler = new Handler(Looper.getMainLooper());
+        this.executorService = executorService;
     }
 
-    public void setDataRepository(DataRepository dataRepository){
+    public void setDataRepository(DataRepository dataRepository) {
         this.dataRepository = dataRepository;
     }
 
-    // Method for sending HTTP POST requests with JSON data
     @Override
-    public void sendDataAndFetch(String resultString, String imgBase64) {
-        String urlString = "http://140.112.14.225:1234/api/chat";
+    public void sendDataAndFetch(String resultString, String imgBase64, String channel) {
+        String urlString = "http://140.112.14.225:1234/api/" + channel;
         JSONObject jsonData = new JSONObject();
 
-        try{
-            jsonData.put("id", "001");  // 修改為 "001"
-            jsonData.put("robot_mbti", "ENFP");  // 使用 "robot_mbti" 替代 "MBTI"
-            jsonData.put("user_name", "傑哥");  // 修改為 "傑哥"
-            jsonData.put("chat", resultString);  // 繼續使用聊天內容
-            jsonData.put("img_base64", imgBase64);  // 使用 "img_base64" 替代 "img"
-        } catch (Exception e){
+        try {
+            jsonData.put("id", "003");
+            jsonData.put("robot_mbti", "ENFP");
+            jsonData.put("user_name", "人");
+            jsonData.put("chat", resultString);
+            jsonData.put("img_base64", imgBase64);
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        //POST Request
-        new Thread(() -> {
-            HttpURLConnection connection = null;
+
+        // 使用 ExecutorService 來執行網絡請求
+        executorService.execute(() -> {
             try {
-                //1. send POST requests
                 URL url = new URL(urlString);
-                connection = (HttpURLConnection) url.openConnection();
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("POST");
                 connection.setRequestProperty("Content-Type", "application/json; utf-8");
                 connection.setRequestProperty("Accept", "application/json");
                 connection.setDoOutput(true);
 
-                // Write JSON data to output stream
                 try (OutputStream os = connection.getOutputStream()) {
                     byte[] input = jsonData.toString().getBytes(StandardCharsets.UTF_8);
                     os.write(input, 0, input.length);
                 }
 
-                // 取得 POST 請求的回應
                 int responseCode = connection.getResponseCode();
                 Log.d(TAG, "Response Code: " + responseCode);
 
-                StringBuilder response = new StringBuilder();
-                try (BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
-                    String responseLine;
-                    while ((responseLine = br.readLine()) != null) {
-                        response.append(responseLine.trim());
+                String talk = getString(connection);
+
+                // 使用 mainHandler 在主線程上更新 UI
+                mainHandler.post(() -> {
+                    if (dataRepository != null) {
+                        dataRepository.updateMessage(talk);
                     }
-                }
-                String jsonString = response.toString();
-                JSONObject jsonResponse = new JSONObject(jsonString);
-
-                String action = jsonResponse.optString("action", "");
-                String emotion = jsonResponse.optString("emotion", "");
-                String talk = jsonResponse.optString("talk", "");
-
-                dataRepository.updateMessage(talk);
-
+                });
 
             } catch (Exception e) {
                 Log.e(TAG, "Error sending data to the server", e);
             }
-        }).start();
+        });
     }
 
+    private static @NonNull String getString(HttpURLConnection connection) throws IOException, JSONException {
+        StringBuilder response = new StringBuilder();
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
+            String responseLine;
+            while ((responseLine = br.readLine()) != null) {
+                response.append(responseLine.trim());
+            }
+        }
+        String jsonString = response.toString();
+        JSONObject jsonResponse = new JSONObject(jsonString);
+
+        String action = jsonResponse.optString("action", "");
+        String emotion = jsonResponse.optString("emotion", "");
+        return jsonResponse.optString("talk", "");
+    }
 }

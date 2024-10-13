@@ -1,14 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
-    <color name="colorPrimary">#2F27CE</color>
-    <color name="colorSecondary">#DEDCFF</color>
-    <color name="colorAccent">#433BFF</color>
+    <!-- Primary colors -->
+    <color name="colorPrimary">#4A90E2</color> <!-- Soft blue -->
+    <color name="colorPrimaryDark">#3A78C2</color> <!-- Darker blue -->
+    <color name="colorAccent">#F5A623</color> <!-- Warm orange -->
 
-    <color name="colorAccentDark">#2F27CE</color>
-    <color name="colorPrimaryDark">#57614E</color>
+    <!-- Background colors -->
+    <color name="background">#F9F9F9</color> <!-- Off-white -->
+    <color name="surface">#FFFFFF</color> <!-- Pure white -->
 
+    <!-- Text colors -->
+    <color name="text_primary">#333333</color> <!-- Dark gray -->
+    <color name="text_secondary">#666666</color> <!-- Medium gray -->
 
+    <!-- Button colors -->
+    <color name="button_normal">#4A90E2</color> <!-- Same as primary -->
+    <color name="button_pressed">#3A78C2</color> <!-- Darker shade -->
+    <color name="button_text">#FFFFFF</color> <!-- White -->
 
+    <!-- Additional colors -->
+    <color name="divider">#EEEEEE</color> <!-- Light gray for dividers -->
+    <color name="success">#4CAF50</color> <!-- Green for success messages -->
+    <color name="error">#E74C3C</color> <!-- Soft red for errors -->
 </resources>

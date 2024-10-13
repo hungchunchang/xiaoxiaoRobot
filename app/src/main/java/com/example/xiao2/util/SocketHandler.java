@@ -4,10 +4,6 @@ import android.content.Context;
 import android.os.Handler;
 import android.util.Log;
 
-import com.example.xiao2.message.AudioMessage;
-import com.example.xiao2.message.ImageMessage;
-import com.example.xiao2.message.Message;
-import com.example.xiao2.message.TextMessage;
 import com.example.xiao2.repository.DataRepository;
 
 import org.json.JSONException;
@@ -34,7 +30,7 @@ public class SocketHandler implements SocketHandlerInterface, Serializable {
     private boolean isConnected = false;
     private OnMessageReceivedListener messageListener;
     private ConnectionListener connectionListener;
-    private final Map<String, Function<String, Message>> messageHandlers = new HashMap<>();
+    private final Map<String, Function<String, String>> messageHandlers = new HashMap<>();
 
     private final String TAG = SocketHandler.class.getSimpleName();
     private DataRepository dataRepository;
@@ -45,18 +41,12 @@ public class SocketHandler implements SocketHandlerInterface, Serializable {
         this.serverName = serverName;
         this.serverPort = serverPort;
         this.mainHandler = new Handler(context.getMainLooper());
-        initializeMessageHandlers();
     }
 
     public void setDataRepository(DataRepository dataRepository) {
         this.dataRepository = dataRepository;
     }
 
-    private void initializeMessageHandlers() {
-        messageHandlers.put("text", TextMessage::new);
-        messageHandlers.put("audio", msg -> new AudioMessage(android.util.Base64.decode(msg, android.util.Base64.DEFAULT)));
-        messageHandlers.put("image", msg -> new ImageMessage(android.util.Base64.decode(msg, android.util.Base64.DEFAULT)));
-    }
 
 
     public void connect(ConnectionListener listener) {
@@ -216,7 +206,7 @@ public class SocketHandler implements SocketHandlerInterface, Serializable {
     }
 
     public interface OnMessageReceivedListener {
-        void onMessageReceived(Message message);
+        void onMessageReceived(String message);
     }
 
     public interface ConnectionListener {

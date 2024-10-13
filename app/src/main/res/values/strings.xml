@@ -102,5 +102,10 @@
     <string name="setting">Setting</string>
     <string name="連線">連線</string>
     <string name="waiting_result">waiting_result</string>
+    <string name="intevriew">訪談</string>
+    <string name="interview">訪談</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="login">Login</string>
 
 </resources>

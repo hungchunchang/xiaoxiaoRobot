@@ -6,8 +6,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.example.xiao2.message.Message;
-import com.example.xiao2.message.TextMessage;
+import com.example.xiao2.listeners.CustomRobotEventListener;
 import com.example.xiao2.repository.DataRepository;
 import com.example.xiao2.util.CameraHandler;
 import com.example.xiao2.util.HttpHandlerInterface;
@@ -31,13 +30,15 @@ public class RobotViewModel extends ViewModel {
     private Timer timer;
     private TimerTask repeatTask;
     private final String TAG = "RobotViewModel";
-    private final MutableLiveData<Message> receivedMessage = new MutableLiveData<>();
+    private final MutableLiveData<String> receivedMessage = new MutableLiveData<>();
+    private final CustomRobotEventListener customRobotEventListener;
 
-    public RobotViewModel(NuwaRobotAPI robotAPI, HttpHandlerInterface httpHandler, DataRepository dataRepository, CameraHandler cameraHandler) {
+    public RobotViewModel(NuwaRobotAPI robotAPI, HttpHandlerInterface httpHandler, DataRepository dataRepository, CameraHandler cameraHandler, CustomRobotEventListener customRobotEventListener) {
         this.mRobotAPI = robotAPI;
         this.httpHandler = httpHandler;
         this.dataRepository = dataRepository;
         this.cameraHandler = cameraHandler;
+        this.customRobotEventListener = customRobotEventListener;
         this.motionMap = new HashMap<>();
         this.expressionMap = new HashMap<>();
         initializeMotionAndExpressionMaps();
@@ -62,7 +63,7 @@ public class RobotViewModel extends ViewModel {
         return dataRepository.getReceivedMessage();
     }
 
-    public void setMessage(Message message) {
+    public void setMessage(String message) {
         receivedMessage.setValue(message);
     }
     public LiveData<String> getCurrentAction() {
@@ -143,10 +144,10 @@ public class RobotViewModel extends ViewModel {
     }
 
     // 將聽到的句子通過 http 傳出去
-    public void sendResultToServerViaHttp(String resultText, String imageBitmap) {
+    public void sendResultToServerViaHttp(String resultText, String imageBitmap, String channel) {
         Log.d(TAG, "Send result to server");
         setAction("Thinking");
-        dataRepository.sendDataViaHttp(resultText,imageBitmap);
+        dataRepository.sendDataViaHttp(resultText,imageBitmap, channel);
     }
 
 
@@ -157,9 +158,40 @@ public class RobotViewModel extends ViewModel {
 
     }
 
-    public void takePicture(String result_string) {
+    public void takePicture(String result_string, String channel) {
         Log.d(TAG, "Taking picture...");
         setAction("TakingPicture");
-        cameraHandler.takePicture(result_string);
+        cameraHandler.takePicture(result_string, channel);
     }
+
+    public void interruptAndReset() {
+        Log.d(TAG, "interruptAndReset: Starting to interrupt robot actions.");
+
+        // 停止所有動作，並保持機器人處於靜止狀態
+        setAction("Idle");  // 設定機器人狀態為 "Idle"
+        Log.d(TAG, ": Robot set to Idle.");
+
+        if (mRobotAPI != null) {
+            Log.d(TAG, "interruptAndReset: Stopping TTS and listening.");
+
+            mRobotAPI.stopTTS();  // 停止所有 TTS 操作
+            mRobotAPI.stopListen();  // 停止語音聆聽
+            mRobotAPI.motionStop(true);  // 停止所有動作
+            Log.d(TAG, "interruptAndReset: Stopped all robot motions.");
+
+            mRobotAPI.UnityFaceManager().hideFace();// 隱藏機器人臉部畫面
+            mRobotAPI.motionReset();
+            Log.d(TAG, "interruptAndReset: Robot face hidden.");
+        } else {
+            Log.e(TAG, "interruptAndReset: mRobotAPI is null, cannot stop actions.");
+        }
+    }
+    public DataRepository getDataRepository() {
+        return dataRepository;
+    }
+
+    public CustomRobotEventListener getCustomRobotEventListener() {
+        return customRobotEventListener;
+    }
+
 }

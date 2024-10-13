@@ -2,7 +2,6 @@ package com.example.xiao2.listeners;
 
 import android.util.Log;
 
-import com.example.xiao2.message.TextMessage;
 import com.example.xiao2.viewmodel.RobotViewModel;
 import com.nuwarobotics.service.agent.VoiceEventListener;
 import com.nuwarobotics.service.agent.VoiceResultJsonParser;
@@ -18,9 +17,13 @@ public class CustomVoiceEventListener implements VoiceEventListener {
 
     private static final String TAG = "CustomVoiceEventListener";
     private final RobotViewModel robotViewModel;
+    private String channel;
 
     public CustomVoiceEventListener(RobotViewModel robotViewModel) {
         this.robotViewModel = robotViewModel;
+    }
+    public void setChannel(String channel){
+        this.channel = channel;
     }
 
     @Override
@@ -89,13 +92,12 @@ public class CustomVoiceEventListener implements VoiceEventListener {
         // 檢查是否包含拍照指令
         if (result_string.contains("你看") || result_string.contains("這是什麼")) {
             Log.d(TAG, "going to take picture");
-            robotViewModel.takePicture(result_string);
+            robotViewModel.takePicture(result_string, channel);
         }
         else{
             Log.d(TAG, "going to send message");
-            TextMessage message = new TextMessage(getCurrentTime() + " onMixUnderstandComplete: " + isError + ", result: " + result_string);
             //robotViewModel.setAction("Thinking");
-            robotViewModel.sendResultToServerViaHttp(result_string, "");
+            robotViewModel.sendResultToServerViaHttp(result_string, "", channel);
             //new Thread(robotViewModel::stopListening).start();
         }
     }

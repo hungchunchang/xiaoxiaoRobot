@@ -6,28 +6,30 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.xiao2.repository.DataRepository;
 import com.example.xiao2.util.CameraHandler;
-import com.example.xiao2.util.HttpHandler;
 import com.example.xiao2.util.HttpHandlerInterface;
+import com.example.xiao2.listeners.CustomRobotEventListener;
 import com.nuwarobotics.service.agent.NuwaRobotAPI;
 
 public class RobotViewModelFactory implements ViewModelProvider.Factory {
     private final NuwaRobotAPI mRobotAPI;
     private final HttpHandlerInterface httpHandler;
-    private final CameraHandler cameraHandler;
     private final DataRepository dataRepository;
+    private final CameraHandler cameraHandler;
+    private final CustomRobotEventListener customRobotEventListener;
 
-    public RobotViewModelFactory(NuwaRobotAPI robotAPI, HttpHandler httpHandler, DataRepository dataRepository, CameraHandler cameraHandler) {
-        this.mRobotAPI = robotAPI;
+    public RobotViewModelFactory(NuwaRobotAPI mRobotAPI, HttpHandlerInterface httpHandler, DataRepository dataRepository, CameraHandler cameraHandler, CustomRobotEventListener customRobotEventListener) {
+        this.mRobotAPI = mRobotAPI;
         this.httpHandler = httpHandler;
-        this.cameraHandler = cameraHandler;
         this.dataRepository = dataRepository;
+        this.cameraHandler = cameraHandler;
+        this.customRobotEventListener = customRobotEventListener;
     }
 
     @NonNull
     @Override
     public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
         if (modelClass.isAssignableFrom(RobotViewModel.class)) {
-            return (T) new RobotViewModel(mRobotAPI, httpHandler, dataRepository, cameraHandler);
+            return (T) new RobotViewModel(mRobotAPI, httpHandler, dataRepository, cameraHandler, customRobotEventListener);
         }
         throw new IllegalArgumentException("Unknown ViewModel class");
     }
