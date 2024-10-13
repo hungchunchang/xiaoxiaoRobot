@@ -14,8 +14,6 @@ import com.example.xiao2.viewmodel.RobotViewModel;
 
 public class VideoFragment extends Fragment {
     private static final String ARG_CHANNEL = "channel";
-    private String channel;
-    private VideoView videoView;
     private RobotViewModel robotViewModel;
 
     public static VideoFragment newInstance(String channel) {
@@ -30,7 +28,7 @@ public class VideoFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            channel = getArguments().getString(ARG_CHANNEL);
+            String channel = getArguments().getString(ARG_CHANNEL);
         }
         robotViewModel = ((MainActivity) requireActivity()).getRobotViewModel();
     }
@@ -38,7 +36,7 @@ public class VideoFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_video, container, false);
-        videoView = view.findViewById(R.id.video_view);
+        VideoView videoView = view.findViewById(R.id.video_view);
 
         // 設置視頻源（這裡需要根據實際情況設置）
         // videoView.setVideoPath("path_to_your_video");
