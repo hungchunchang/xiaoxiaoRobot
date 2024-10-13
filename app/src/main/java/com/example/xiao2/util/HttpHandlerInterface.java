@@ -9,9 +9,5 @@ public interface HttpHandlerInterface {
 
     void setDataRepository(DataRepository dataRepository);
 
-    interface ResponseListener{
-        void onResponseReceived(String response);
-        void onErrorReceived(Exception e);
-    }
 
 }
