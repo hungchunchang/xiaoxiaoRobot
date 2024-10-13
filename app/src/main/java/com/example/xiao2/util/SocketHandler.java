@@ -129,9 +129,8 @@ public class SocketHandler implements SocketHandlerInterface, Serializable {
                     break;
 
                 case "text":
-                    TextMessage receivedMessage = new TextMessage(output);
-                    Log.d(TAG, "Received message: " + receivedMessage);
-                    dataRepository.updateMessage(receivedMessage);
+                    Log.d(TAG, "Received message: " + output);
+                    dataRepository.updateMessage(output);
                     break;
 
                 default:

@@ -15,7 +15,7 @@ import java.io.ByteArrayOutputStream;
 public class DataRepository {
 //    private final SocketHandlerInterface socketHandler;
     private final HttpHandlerInterface httpHandler;
-    private final MutableLiveData<Message> receivedMessage = new MutableLiveData<>();
+    private final MutableLiveData<String> receivedMessage = new MutableLiveData<>();
     private final String TAG = "DataRepository";
     // 宣告
     public DataRepository(HttpHandlerInterface httpHandler){
@@ -46,11 +46,11 @@ public class DataRepository {
     }
 
     //收訊息
-    public LiveData<Message> getReceivedMessage() {
+    public LiveData<String> getReceivedMessage() {
         return receivedMessage;
     }
 
-    public void updateMessage(Message message) {
+    public void updateMessage(String message) {
         receivedMessage.postValue(message);
     }
 

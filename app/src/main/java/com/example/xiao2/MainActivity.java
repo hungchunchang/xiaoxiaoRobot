@@ -91,8 +91,8 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(MainActivity.this, "開始！", Toast.LENGTH_SHORT).show();
             dataRepository.sendDataViaHttp("hello!","");
             startButton.setVisibility(View.GONE);
-            robotViewModel.setAction("Listening");
-            robotViewModel.startListening();
+            robotViewModel.setAction("Thinking");
+//            robotViewModel.startListening();
         });
     }
 

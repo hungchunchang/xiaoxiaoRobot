@@ -58,7 +58,7 @@ public class RobotViewModel extends ViewModel {
         expressionMap.put("TakingPicture", "TTS_JoyB");
     }
 
-    public LiveData<Message> getReceivedMessage() {
+    public LiveData<String> getReceivedMessage() {
         return dataRepository.getReceivedMessage();
     }
 
@@ -151,13 +151,10 @@ public class RobotViewModel extends ViewModel {
 
 
     // 機器人語音輸出控制
-    public void speak(Message message) {
+    public void speak(String message) {
         setAction("Speaking");
-        if (message instanceof TextMessage) {
-            TextMessage textMessage = (TextMessage) message;
-            String text = textMessage.getText();
-            mRobotAPI.startTTS(text);
-        }
+        mRobotAPI.startTTS(message);
+
     }
 
     public void takePicture(String result_string) {

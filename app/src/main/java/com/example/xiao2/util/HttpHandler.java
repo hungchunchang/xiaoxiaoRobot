@@ -4,7 +4,6 @@ import android.content.Context;
 import android.os.Handler;
 import android.util.Log;
 
-import com.example.xiao2.message.TextMessage;
 import com.example.xiao2.repository.DataRepository;
 
 import org.json.JSONObject;
@@ -19,7 +18,6 @@ import java.nio.charset.StandardCharsets;
 
 public class HttpHandler implements HttpHandlerInterface, Serializable {
 
-    public static final String UTF_8 = "utf-8";
     private static final String TAG = HttpHandler.class.getSimpleName();
     private final Context context;
     private final Handler mainHandler;
@@ -38,7 +36,7 @@ public class HttpHandler implements HttpHandlerInterface, Serializable {
     // Method for sending HTTP POST requests with JSON data
     @Override
     public void sendDataAndFetch(String resultString, String imgBase64) {
-        String urlString = "http://140.112.14.225:1234/api/content";
+        String urlString = "http://140.112.14.225:1234/api/chat";
         JSONObject jsonData = new JSONObject();
 
         try{
@@ -79,8 +77,14 @@ public class HttpHandler implements HttpHandlerInterface, Serializable {
                         response.append(responseLine.trim());
                     }
                 }
-                TextMessage receivedMessage = new TextMessage(response.toString());
-                dataRepository.updateMessage(receivedMessage);
+                String jsonString = response.toString();
+                JSONObject jsonResponse = new JSONObject(jsonString);
+
+                String action = jsonResponse.optString("action", "");
+                String emotion = jsonResponse.optString("emotion", "");
+                String talk = jsonResponse.optString("talk", "");
+
+                dataRepository.updateMessage(talk);
 
 
             } catch (Exception e) {
