@@ -188,16 +188,24 @@ public class MainActivity extends AppCompatActivity implements RobotEventCallbac
         Log.d(TAG, "switchToButtonFragment: Completed");
     }
 
+
     @Override
-    public void resetUIToInitialState() {
-        Log.d(TAG, "resetUIToInitialState: Starting");
-        runOnUiThread(() -> {
-            loginContainer.setVisibility(View.VISIBLE);
-            findViewById(R.id.fragment_container).setVisibility(View.GONE);
-            mRobotAPI.UnityFaceManager().hideFace();
-            getSupportFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-            Log.d(TAG, "resetUIToInitialState: Completed");
-        });
+    protected void onDestroy() {
+        super.onDestroy();
+
+        // 清理 NuwaRobotAPI 資源
+        if (mRobotAPI != null) {
+            // 銷毀 NuwaRobotAPI
+            mRobotAPI.release();
+            Log.d(TAG, "NuwaRobotAPI resources released");
+        }
+
+        // 關閉 ExecutorService 以確保所有線程正確終止
+        if (executorService != null && !executorService.isShutdown()) {
+            executorService.shutdown();
+            Log.d(TAG, "ExecutorService shutdown");
+        }
+        cameraHandler.destroy();
     }
 
 }
