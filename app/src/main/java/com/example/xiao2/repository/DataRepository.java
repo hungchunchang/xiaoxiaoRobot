@@ -38,9 +38,7 @@ public class DataRepository {
 
     public void sendDataViaHttp(String resultText, String imageBitmap, String channel) {
         if (resultText != null) {
-            executorService.execute(() -> {
-                httpHandler.sendDataAndFetch(resultText, imageBitmap, channel);
-            });
+            executorService.execute(() -> httpHandler.sendDataAndFetch(resultText, imageBitmap, channel));
         } else {
             Log.e(TAG, "result Text is null or empty(http)");
         }
