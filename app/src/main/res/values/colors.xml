@@ -4,22 +4,55 @@
     <color name="colorPrimary">#4A90E2</color> <!-- Soft blue -->
     <color name="colorPrimaryDark">#3A78C2</color> <!-- Darker blue -->
     <color name="colorAccent">#F5A623</color> <!-- Warm orange -->
+    <color name="colorSecondary">#50E3C2</color> <!-- Aqua secondary color -->
+    <color name="colorTertiary">#9B51E0</color> <!-- Purple tertiary color -->
 
     <!-- Background colors -->
     <color name="background">#F9F9F9</color> <!-- Off-white -->
+    <color name="background_dark">#E0E0E0</color> <!-- Light gray background for dark themes -->
     <color name="surface">#FFFFFF</color> <!-- Pure white -->
+    <color name="surface_dark">#333333</color> <!-- Dark surface color for dark themes -->
 
     <!-- Text colors -->
     <color name="text_primary">#333333</color> <!-- Dark gray -->
     <color name="text_secondary">#666666</color> <!-- Medium gray -->
+    <color name="text_hint">#999999</color> <!-- Lighter gray for hint text -->
+    <color name="text_on_primary">#FFFFFF</color> <!-- White for text on primary color -->
+    <color name="text_on_secondary">#FFFFFF</color> <!-- White for text on secondary color -->
+    <color name="text_error">#D32F2F</color> <!-- Red for error messages -->
 
     <!-- Button colors -->
     <color name="button_normal">#4A90E2</color> <!-- Same as primary -->
-    <color name="button_pressed">#3A78C2</color> <!-- Darker shade -->
+    <color name="button_pressed">#FFD700</color> <!-- Darker shade -->
+    <color name="button_disabled">#B0BEC5</color> <!-- Gray for disabled buttons -->
     <color name="button_text">#FFFFFF</color> <!-- White -->
 
-    <!-- Additional colors -->
+    <!-- State colors -->
+    <color name="state_enabled">#388E3C</color> <!-- Green for enabled state -->
+    <color name="state_disabled">#B0BEC5</color> <!-- Gray for disabled state -->
+    <color name="state_selected">#FFEB3B</color> <!-- Yellow for selected state -->
+
+    <!-- Divider and border colors -->
     <color name="divider">#EEEEEE</color> <!-- Light gray for dividers -->
+    <color name="border">#CCCCCC</color> <!-- Medium gray for borders -->
+
+    <!-- Status colors -->
     <color name="success">#4CAF50</color> <!-- Green for success messages -->
     <color name="error">#E74C3C</color> <!-- Soft red for errors -->
+    <color name="warning">#FF9800</color> <!-- Orange for warnings -->
+    <color name="info">#2196F3</color> <!-- Blue for informational messages -->
+
+    <!-- Action colors -->
+    <color name="action_positive">#388E3C</color> <!-- Positive actions (e.g., confirm) -->
+    <color name="action_negative">#D32F2F</color> <!-- Negative actions (e.g., cancel) -->
+    <color name="action_neutral">#757575</color> <!-- Neutral actions -->
+
+    <!-- Additional colors -->
+    <color name="shadow">#1A000000</color> <!-- Semi-transparent black for shadows -->
+    <color name="overlay">#80000000</color> <!-- Semi-transparent black for overlays -->
+    <color name="highlight">#FFFFE0</color> <!-- Light yellow for highlights -->
+
+    <!-- Link colors -->
+    <color name="link">#1E88E5</color> <!-- Blue for links -->
+    <color name="link_visited">#673AB7</color> <!-- Purple for visited links -->
 </resources>

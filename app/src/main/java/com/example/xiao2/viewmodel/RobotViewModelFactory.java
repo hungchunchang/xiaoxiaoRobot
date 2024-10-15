@@ -29,8 +29,7 @@ public class RobotViewModelFactory implements ViewModelProvider.Factory {
     @Override
     public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
         if (modelClass.isAssignableFrom(RobotViewModel.class)) {
-            T t = (T) new RobotViewModel(mRobotAPI, httpHandler, dataRepository, cameraHandler, customRobotEventListener);
-            return t;
+            return (T) new RobotViewModel(mRobotAPI, dataRepository, cameraHandler, customRobotEventListener);
         }
         throw new IllegalArgumentException("Unknown ViewModel class");
     }

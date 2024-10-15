@@ -23,7 +23,7 @@ public class DataRepository {
         this.executorService = executorService;
     }
 
-    public void handleCapturedImage(String result_string, Bitmap imageBitmap, String channel) {
+    public void handleCapturedImage(String resultString, Bitmap imageBitmap, String userName, String userId, String personality, String channel) {
         if (httpHandler != null) {
             executorService.execute(() -> {
                 ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -31,14 +31,14 @@ public class DataRepository {
                 byte[] imageBytes = byteArrayOutputStream.toByteArray();
                 String imageBase64 = Base64.encodeToString(imageBytes, Base64.DEFAULT);
                 Log.d(TAG, "Sending picture via Http...");
-                httpHandler.sendDataAndFetch(result_string, imageBase64, channel);
+                httpHandler.sendDataAndFetch(resultString, imageBase64, userName, userId, personality, channel);
             });
         }
     }
 
-    public void sendDataViaHttp(String resultText, String imageBitmap, String channel) {
-        if (resultText != null) {
-            executorService.execute(() -> httpHandler.sendDataAndFetch(resultText, imageBitmap, channel));
+    public void sendDataViaHttp(String resultString, String imageBitmap, String userName, String userId, String personality, String channel) {
+        if (resultString != null) {
+            executorService.execute(() -> httpHandler.sendDataAndFetch(resultString, imageBitmap, userName, userId, personality, channel));
         } else {
             Log.e(TAG, "result Text is null or empty(http)");
         }

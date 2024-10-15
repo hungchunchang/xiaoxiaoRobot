@@ -39,14 +39,14 @@ public class HttpHandler implements HttpHandlerInterface, Serializable {
     }
 
     @Override
-    public void sendDataAndFetch(String resultString, String imgBase64, String channel) {
+    public void sendDataAndFetch(String resultString, String imgBase64, String userName, String userId, String personality, String channel) {
         String urlString = "http://140.112.14.225:1234/api/" + channel;
         JSONObject jsonData = new JSONObject();
 
         try {
-            jsonData.put("id", "003");
-            jsonData.put("robot_mbti", "ENFP");
-            jsonData.put("user_name", "人");
+            jsonData.put("id", userId);
+            jsonData.put("robot_mbti", personality);
+            jsonData.put("user_name", userName);
             jsonData.put("chat", resultString);
             jsonData.put("img_base64", imgBase64);
         } catch (Exception e) {

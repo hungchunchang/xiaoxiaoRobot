@@ -81,7 +81,7 @@ public class CameraHandler {
         }, ContextCompat.getMainExecutor(context));
     }
 
-    public void takePicture(String resultString, String channel) {
+    public void takePicture(String resultString, String userName, String userId, String personality, String channel) {
         // 創建保存圖片的目標檔案
         File file = new File(context.getExternalFilesDir(null), "photo.jpg");
 
@@ -96,7 +96,7 @@ public class CameraHandler {
                 Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
                 if (dataRepository != null) {
                     // 將拍攝的圖片傳遞到 DataRepository
-                    dataRepository.handleCapturedImage(resultString, bitmap, channel);
+                    dataRepository.handleCapturedImage(resultString, bitmap, userName, userId, personality, channel);
                 }
                 Log.d(TAG, "Image captured and saved successfully.");
             }
