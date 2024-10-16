@@ -21,11 +21,20 @@
     <color name="text_on_secondary">#FFFFFF</color> <!-- White for text on secondary color -->
     <color name="text_error">#D32F2F</color> <!-- Red for error messages -->
 
+    <!-- Button colors for the state changes -->
+    <color name="button_background_unselected">#FFFFFF</color> <!-- White background for unselected -->
+    <color name="button_text_unselected">#4A90E2</color> <!-- Blue text for unselected state -->
+    <color name="button_border_unselected">#4A90E2</color> <!-- Blue border for unselected state -->
+
+    <color name="button_background_selected">#4A90E2</color> <!-- Blue background for selected -->
+    <color name="button_text_selected">#FFFFFF</color> <!-- White text for selected state -->
+    <color name="button_border_selected">#FFFFFF</color> <!-- White border for selected state -->
+
     <!-- Button colors -->
     <color name="button_normal">#4A90E2</color> <!-- Same as primary -->
-    <color name="button_pressed">#FFD700</color> <!-- Darker shade -->
+    <color name="button_pressed">#3A78C2</color> <!-- Slightly darker blue for pressed state -->
     <color name="button_disabled">#B0BEC5</color> <!-- Gray for disabled buttons -->
-    <color name="button_text">#FFFFFF</color> <!-- White -->
+    <color name="button_text">#FFFFFF</color> <!-- White text -->
 
     <!-- State colors -->
     <color name="state_enabled">#388E3C</color> <!-- Green for enabled state -->

@@ -7,6 +7,7 @@ import android.util.Log;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import com.example.xiao2.objects.ActionResponse;
 import com.example.xiao2.util.HttpHandlerInterface;
 
 import java.io.ByteArrayOutputStream;
@@ -14,7 +15,7 @@ import java.util.concurrent.ExecutorService;
 
 public class DataRepository {
     private final HttpHandlerInterface httpHandler;
-    private final MutableLiveData<String> receivedMessage = new MutableLiveData<>();
+    private final MutableLiveData<ActionResponse> receivedMessage = new MutableLiveData<>();
     private final String TAG = "DataRepository";
     private final ExecutorService executorService;
 
@@ -44,11 +45,11 @@ public class DataRepository {
         }
     }
 
-    public LiveData<String> getReceivedMessage() {
+    public LiveData<ActionResponse> getReceivedMessage() {
         return receivedMessage;
     }
 
-    public void updateMessage(String message) {
+    public void updateMessage(ActionResponse message) {
         receivedMessage.postValue(message);
     }
 }

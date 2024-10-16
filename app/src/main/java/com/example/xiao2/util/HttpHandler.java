@@ -6,6 +6,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import com.example.xiao2.objects.ActionResponse;
 import com.example.xiao2.repository.DataRepository;
 
 import org.json.JSONException;
@@ -49,6 +50,7 @@ public class HttpHandler implements HttpHandlerInterface, Serializable {
             jsonData.put("user_name", userName);
             jsonData.put("chat", resultString);
             jsonData.put("img_base64", imgBase64);
+            Log.d("http",userId+personality+userName+resultString);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -71,12 +73,12 @@ public class HttpHandler implements HttpHandlerInterface, Serializable {
                 int responseCode = connection.getResponseCode();
                 Log.d(TAG, "Response Code: " + responseCode);
 
-                String talk = getString(connection);
+                ActionResponse action = getActionResponse(connection);
 
                 // 使用 mainHandler 在主線程上更新 UI
                 mainHandler.post(() -> {
                     if (dataRepository != null) {
-                        dataRepository.updateMessage(talk);
+                        dataRepository.updateMessage(action);
                     }
                 });
 
@@ -86,7 +88,7 @@ public class HttpHandler implements HttpHandlerInterface, Serializable {
         });
     }
 
-    private static @NonNull String getString(HttpURLConnection connection) throws IOException, JSONException {
+    private static @NonNull ActionResponse getActionResponse(HttpURLConnection connection) throws IOException, JSONException {
         StringBuilder response = new StringBuilder();
         try (BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
             String responseLine;
@@ -99,6 +101,8 @@ public class HttpHandler implements HttpHandlerInterface, Serializable {
 
         String action = jsonResponse.optString("action", "");
         String emotion = jsonResponse.optString("emotion", "");
-        return jsonResponse.optString("talk", "");
+        String talk = jsonResponse.optString("talk", "");
+
+        return new ActionResponse(action, emotion, talk);
     }
 }

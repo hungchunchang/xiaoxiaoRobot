@@ -12,6 +12,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
@@ -19,8 +20,8 @@ import com.example.xiao2.R;
 
 public class SettingFragment extends Fragment {
 
-    private String selectedPersonality;  // 默認人格
-    private String selectedChatType;     // 默認聊天模式
+    private String selectedPersonality = "INFP";  // 默認人格
+    private String selectedChatType = "biography";     // 默認聊天模式
     private Button selectedPersonalityButton;     // 已選擇的人格按鈕
     private Button selectedChatTypeButton;        // 已選擇的聊天模式按鈕
     private SharedPreferences sharedPreferences;
@@ -75,7 +76,7 @@ public class SettingFragment extends Fragment {
 
             // 回到 LoginFragment
             FragmentTransaction transaction = requireActivity().getSupportFragmentManager().beginTransaction();
-            transaction.replace(R.id.fragment_container, new LoginFragment());  // 跳轉到 UserFragment
+            transaction.replace(R.id.fragment_container, new LoginFragment());  // 跳轉到 LoginFragment
             transaction.addToBackStack(null);  // 可選：將該 Fragment 添加到返回棧
             transaction.commit();
         });
@@ -109,17 +110,15 @@ public class SettingFragment extends Fragment {
     private void setupSingleSelection(boolean isPersonality, Button... buttons) {
         for (Button button : buttons) {
             button.setOnClickListener(v -> {
-                // 取消上一次選擇的按鈕的樣式
+                // 重置所有按鈕的樣式
+                for (Button btn : buttons) {
+                    resetButtonStyle(btn);
+                }
+
                 if (isPersonality) {
-                    if (selectedPersonalityButton != null) {
-                        resetButtonStyle(selectedPersonalityButton);
-                    }
                     selectedPersonalityButton = button;
                     selectedPersonality = button.getText().toString();  // 更新選擇的人格
                 } else {
-                    if (selectedChatTypeButton != null) {
-                        resetButtonStyle(selectedChatTypeButton);
-                    }
                     selectedChatTypeButton = button;
                     selectedChatType = button.getText().toString();  // 更新選擇的聊天模式
                 }
@@ -132,14 +131,14 @@ public class SettingFragment extends Fragment {
 
     // 重置按鈕樣式
     private void resetButtonStyle(Button button) {
-        button.setBackgroundColor(getResources().getColor(R.color.button_normal));  // 使用自定義的默認按鈕背景色
-        button.setTextColor(getResources().getColor(R.color.text_primary));  // 恢復默認文字顏色（深灰色）
+        button.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.button_normal));  // 使用自定義的默認按鈕背景色
+        button.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_primary));  // 恢復默認文字顏色（深灰色）
     }
 
     // 設置選中的按鈕樣式
     private void setSelectedButtonStyle(Button button) {
-        button.setBackgroundColor(getResources().getColor(R.color.colorAccent));  // 設置選中背景顏色（暖橘色）
-        button.setTextColor(getResources().getColor(R.color.text_on_primary));  // 設置選中時文字顏色（白色）
+        button.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.colorAccent));  // 設置選中背景顏色（暖橘色）
+        button.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_on_primary));  // 設置選中時文字顏色（白色）
     }
 
     @Override
@@ -159,5 +158,4 @@ public class SettingFragment extends Fragment {
             view.setVisibility(View.GONE);
         }
     }
-
 }

@@ -8,13 +8,13 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.xiao2.listeners.CustomRobotEventListener;
+import com.example.xiao2.objects.ActionResponse;
 import com.example.xiao2.repository.DataRepository;
 import com.example.xiao2.util.CameraHandler;
 import com.nuwarobotics.service.agent.NuwaRobotAPI;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 public class RobotViewModel extends ViewModel {
     private final NuwaRobotAPI mRobotAPI;
@@ -22,6 +22,7 @@ public class RobotViewModel extends ViewModel {
     private final MutableLiveData<String> currentExpression = new MutableLiveData<>();
     private final Map<String, String> motionMap;
     private final Map<String, String> expressionMap;
+    private final Map<String, String> emotionVideoMap;
     private final CameraHandler cameraHandler;
     private final DataRepository dataRepository;
     private final String TAG = "RobotViewModel";
@@ -31,13 +32,14 @@ public class RobotViewModel extends ViewModel {
 
     private final CustomRobotEventListener customRobotEventListener;
 
-    public RobotViewModel(NuwaRobotAPI robotAPI, DataRepository dataRepository, CameraHandler cameraHandler, CustomRobotEventListener customRobotEventListener) {
+    public RobotViewModel(NuwaRobotAPI robotAPI, DataRepository dataRepository, CameraHandler cameraHandler, CustomRobotEventListener customRobotEventListener, HashMap<String, String> emotionVideoMap) {
         this.mRobotAPI = robotAPI;
         this.dataRepository = dataRepository;
         this.cameraHandler = cameraHandler;
         this.customRobotEventListener = customRobotEventListener;
         this.motionMap = new HashMap<>();
         this.expressionMap = new HashMap<>();
+        this.emotionVideoMap = emotionVideoMap;
         initializeMotionAndExpressionMaps();
 
     }
@@ -57,7 +59,16 @@ public class RobotViewModel extends ViewModel {
         expressionMap.put("TakingPicture", "TTS_JoyB");
     }
 
-    public LiveData<String> getReceivedMessage() {
+    public String getVideoPathForEmotion(String emotion) {
+        if (emotionVideoMap.containsKey(emotion)) {
+            return emotionVideoMap.get(emotion);  // 從 HashMap 中獲取影片路徑
+        } else {
+            Log.e(TAG, "No video path found for emotion: " + emotion);
+            return null;
+        }
+    }
+
+    public LiveData<ActionResponse> getReceivedMessage() {
         return dataRepository.getReceivedMessage();
     }
 

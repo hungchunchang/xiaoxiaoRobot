@@ -2,7 +2,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="24dp">
+    android:padding="24dp"
+    android:focusableInTouchMode="true"
+    android:focusable="true"
+    android:clickable="true">
 
     <!-- 開始按鈕，放置在中間 -->
     <Button

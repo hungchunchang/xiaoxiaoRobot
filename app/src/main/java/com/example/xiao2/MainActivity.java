@@ -35,6 +35,7 @@ import com.nuwarobotics.service.IClientId;
 import com.nuwarobotics.service.agent.NuwaRobotAPI;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -58,16 +59,15 @@ public class MainActivity extends AppCompatActivity implements RobotEventCallbac
     private static final String KEY_USER_ID = "user_id";
 
     private TextView tapToStartTextView;
-    private RelativeLayout mainLayout;
     private FragmentContainerView fragmentContainer;
 
     private Handler mainHandler;
     private static final int REQUEST_ID_MULTIPLE_PERMISSIONS = 1;
     private NuwaRobotAPI mRobotAPI;
     private CameraHandler cameraHandler;
-    private CustomRobotEventListener customRobotEventListener;
     private RobotViewModel robotViewModel;
     private final ExecutorService executorService = Executors.newFixedThreadPool(4);
+    private HashMap<String, String> emotionVideoMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity implements RobotEventCallbac
 
         // 初始化 TextView 和 Layout
         tapToStartTextView = findViewById(R.id.tap_to_start);
-        mainLayout = findViewById(R.id.main_layout);
+        RelativeLayout mainLayout = findViewById(R.id.main_layout);
         fragmentContainer = findViewById(R.id.fragment_container);
 
         // 確保 tapToStartTextView 不為 null
@@ -103,12 +103,12 @@ public class MainActivity extends AppCompatActivity implements RobotEventCallbac
             // 顯示 Fragment 容器並加載 LoginFragment
             fragmentContainer.setVisibility(View.VISIBLE);
 
-            // 使用 FragmentManager 加載 LoginFragment
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, new LoginFragment())
-                    .commit();
+            // 使用 FragmentTransaction 轉場
+            loadLoginFragment();
         });
 
+        emotionVideoMap = new HashMap<>();
+        initializeEmotionVideoMap(emotionVideoMap);  // 將影片路徑加入 HashMap
 
         // 初始化 Handler 以在主線程處理任務
         mainHandler = new Handler(Looper.getMainLooper());
@@ -125,6 +125,19 @@ public class MainActivity extends AppCompatActivity implements RobotEventCallbac
                 switchToUserFragment();
             }
         });
+
+    }
+
+    // 在 MainActivity 中初始化影片路徑的邏輯
+    private void initializeEmotionVideoMap(HashMap<String, String> emotionVideoMap) {
+        emotionVideoMap.put("neutral", "android.resource://" + getPackageName() + "/" + R.raw.i_neutral_n);
+        emotionVideoMap.put("angry", "android.resource://" + getPackageName() + "/" + R.raw.i_angry_n);
+        emotionVideoMap.put("sad", "android.resource://" + getPackageName() + "/" + R.raw.i_sad_n);
+        emotionVideoMap.put("happy", "android.resource://" + getPackageName() + "/" + R.raw.i_happy_n);
+        emotionVideoMap.put("disgusted", "android.resource://" + getPackageName() + "/" + R.raw.i_disgusted_n);
+        emotionVideoMap.put("scared", "android.resource://" + getPackageName() + "/" + R.raw.i_scared_s);
+        emotionVideoMap.put("excited", "android.resource://" + getPackageName() + "/" + R.raw.i_excited_s);
+        emotionVideoMap.put("surprise", "android.resource://" + getPackageName() + "/" + R.raw.i_surprise_s);
     }
 
     private void switchToUserFragment() {
@@ -226,7 +239,7 @@ public class MainActivity extends AppCompatActivity implements RobotEventCallbac
         cameraHandler.setDataRepository(dataRepository);
 
         // 初始化 CustomRobotEventListener
-        customRobotEventListener = new CustomRobotEventListener(mRobotAPI, null, this);
+        CustomRobotEventListener customRobotEventListener = new CustomRobotEventListener(mRobotAPI, null, this);
 
         // 註冊 RobotEventListener
         mRobotAPI.registerRobotEventListener(customRobotEventListener);
@@ -235,7 +248,7 @@ public class MainActivity extends AppCompatActivity implements RobotEventCallbac
         initializeCameraX();
 
         // 初始化 RobotViewModel 並傳遞 customRobotEventListener
-        RobotViewModelFactory factory = new RobotViewModelFactory(mRobotAPI, httpHandler, dataRepository, cameraHandler, customRobotEventListener);
+        RobotViewModelFactory factory = new RobotViewModelFactory(mRobotAPI, httpHandler, dataRepository, cameraHandler, customRobotEventListener, emotionVideoMap);
         robotViewModel = new ViewModelProvider(this, factory).get(RobotViewModel.class);
 
     }

@@ -1,6 +1,8 @@
 package com.example.xiao2.fragment;
 
+import android.net.Uri;
 import android.os.Bundle;
+import android.widget.VideoView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,6 +21,7 @@ public class VideoFragment extends Fragment {
     private static final String TAG = "VideoFragment";
     private static final String ARG_CHANNEL = "channel";
     private RobotViewModel robotViewModel;
+    private VideoView videoView;
 
     public static VideoFragment newInstance(String channel) {
         VideoFragment fragment = new VideoFragment();
@@ -39,43 +42,48 @@ public class VideoFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_video, container, false);
-        VideoView videoView = view.findViewById(R.id.video_view);
+        videoView = view.findViewById(R.id.video_view);
 
-//        // 從 Bundle 中獲取影片路徑或 URI
-//        String videoPath = getArguments() != null ? getArguments().getString("video_path") : null;
-//
-//        if (videoPath != null) {
-//            videoView.setVideoPath(videoPath);
-//            videoView.start();  // 播放影片
-//        }
-
-        initSDKState();
         startConversation();
+        observeReceivedMessage();
 
         return view;
     }
+
+    private void startConversation() {
+//        robotViewModel.setAction("Thinking");
+        playEmotionVideo("neutral");
+    }
+
     private void observeReceivedMessage() {
         robotViewModel.getReceivedMessage().observe(getViewLifecycleOwner(), message -> {
-            if (message != null && !message.isEmpty()) {
+            if (message != null) {
                 Log.d(TAG, "接收到訊息：" + message);
 
                 // 顯示訊息為 Toast
-                Toast.makeText(getContext(), "接收到訊息: " + message, Toast.LENGTH_LONG).show();
-
+                Toast.makeText(getContext(), "接收到訊息: " + message.getTalk(), Toast.LENGTH_LONG).show();
+                playEmotionVideo("happy");
                 // 播放 TTS
-                robotViewModel.speak(message);
+                robotViewModel.speak(message.getTalk());
+//                playEmotionVideo(message.getEmotion());
+
             }
         });
     }
 
-    private void initSDKState() {
-        robotViewModel.showRobotFace();
-        robotViewModel.setAction("Idle");
-    }
 
-    private void startConversation() {
-        robotViewModel.setAction("Thinking");
+    private void playEmotionVideo(String emotion) {
+        // 從 RobotViewModel 獲取對應情緒的影片路徑
+        String videoPath = robotViewModel.getVideoPathForEmotion(emotion);
 
+        if (videoPath != null) {
+            Uri videoUri = Uri.parse(videoPath);
+            videoView.setVideoURI(videoUri);
+            videoView.start();  // 播放影片
+            Log.d("VideoFragment", "Video Player");
+        } else {
+            Log.e("VideoFragment", "No video path available for the given emotion.");
+        }
     }
 
     @Override

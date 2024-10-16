@@ -112,16 +112,21 @@ public class UserFragment extends Fragment {
 
             // 顯示提示
             Toast.makeText(requireContext(), "數據已發送", Toast.LENGTH_SHORT).show();
+            transactionToVideo();
+
         } else {
             Toast.makeText(requireContext(), "請先在設置頁面填寫完整信息", Toast.LENGTH_SHORT).show();
         }
 
+    }
+    private void transactionToVideo(){
         // 使用 FragmentTransaction 進行跳轉到 VideoFragment
         transaction = requireActivity().getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.fragment_container, new VideoFragment());  // 跳轉到 VideoFragment
         transaction.addToBackStack(null);  // 可選：將該 Fragment 添加到返回棧
         transaction.commit();
     }
+
 
     @Override
     public void onResume() {
