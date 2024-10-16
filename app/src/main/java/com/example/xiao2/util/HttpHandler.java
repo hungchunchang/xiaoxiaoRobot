@@ -44,9 +44,9 @@ public class HttpHandler implements HttpHandlerInterface, Serializable {
         JSONObject jsonData = new JSONObject();
 
         try {
-            jsonData.put("id", "003");
+            jsonData.put("id", "1006");
             jsonData.put("robot_mbti", "ENFP");
-            jsonData.put("user_name", "人");
+            jsonData.put("user_name", "阿姨");
             jsonData.put("chat", resultString);
             jsonData.put("img_base64", imgBase64);
         } catch (Exception e) {

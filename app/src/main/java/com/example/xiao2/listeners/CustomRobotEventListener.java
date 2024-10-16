@@ -119,6 +119,8 @@ public class CustomRobotEventListener implements RobotEventListener {
                 Log.d(TAG, "onLongPress: Interrupting and resetting robot.");
                 robotViewModel.interruptAndReset();  // 重置機器人狀態
 
+                robotViewModel.interruptAndReset();
+
                 Log.d(TAG, "onLongPress: Switching from VideoFragment to ButtonFragment.");
                 if (callback instanceof MainActivity) {
                     MainActivity activity = (MainActivity) callback;
